@@ -1,0 +1,16 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "cache": true
+    },
+    "start:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

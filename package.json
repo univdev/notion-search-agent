@@ -1,0 +1,21 @@
+{
+  "name": "notion-search-agent",
+  "version": "1.0.0",
+  "description": "Notion Search Agent",
+  "author": {
+    "name": "univdev",
+    "email": "pcydeveloper@gmail.com",
+    "url": "https://github.com/univdev"
+  },
+  "license": "GPL-3.0",
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "c:dev": "turbo run dev -F=@notion-search-agent/client",
+    "c:build": "turbo run build -F=@notion-search-agent/client",
+    "s:dev": "turbo run start:dev -F=@notion-search-agent/server",
+    "s:build": "turbo run build -F=@notion-search-agent/server"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.5"
+  }
+}
