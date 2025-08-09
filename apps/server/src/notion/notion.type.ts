@@ -8,7 +8,7 @@ export type GetNotionSyncHistoriesPayload = {
 };
 
 export type Sentence = {
-  pageId: string;
+  blockId: string;
   value: string;
   type: string;
   language?: string;

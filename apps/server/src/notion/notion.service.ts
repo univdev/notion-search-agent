@@ -3,10 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
-import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
-import { GetNotionSyncHistoriesPayload, PatchNotionSyncPayload, Sentence } from './notion.type';
-import { WeaviateService } from 'src/weaviate/weaviate.service';
 import { CONFIGS } from 'src/configs/configs';
+import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
+import { WeaviateService } from 'src/weaviate/weaviate.service';
+
+import { GetNotionSyncHistoriesPayload, PatchNotionSyncPayload, Sentence } from './notion.type';
 
 @Injectable()
 export class NotionService {
@@ -130,7 +131,7 @@ export class NotionService {
         if ('language' in result[type]) language = result[type].language;
 
         sentences.push({
-          pageId: result.id,
+          blockId: result.id,
           value: result[type].rich_text.map((text) => text.plain_text).join(''),
           type,
           language,

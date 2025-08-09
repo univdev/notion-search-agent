@@ -12,6 +12,11 @@ export const CONFIGS = {
       DIMENSIONS: 1536,
     },
   },
+  OPENAI: {
+    QUESTION: {
+      MODEL: 'gpt-4o-mini',
+    },
+  },
   NOTION_SENTENCES: {
     // 사용자가 던진 질문에 유사한 데이터를 거리 기반으로 검색할 때 반환할 데이터 갯수입니다.
     // ! 수가 너무 많거나 적으면 검색 정확도가 떨어질 수 있습니다.

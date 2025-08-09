@@ -13,9 +13,11 @@
     "c:dev": "turbo run dev -F=@notion-search-agent/client",
     "c:build": "turbo run build -F=@notion-search-agent/client",
     "s:dev": "turbo run start:dev -F=@notion-search-agent/server",
-    "s:build": "turbo run build -F=@notion-search-agent/server"
+    "s:build": "turbo run build -F=@notion-search-agent/server",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "turbo": "^2.5.5"
   }
 }

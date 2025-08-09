@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix"
   },
   "dependencies": {
     "@notionhq/client": "^4.0.1",
@@ -19,8 +20,14 @@
     "@tauri-apps/cli": "^2",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@typescript-eslint/eslint-plugin": "^8.39.0",
+    "@typescript-eslint/parser": "^8.39.0",
     "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^8.57.1",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
+  },
+  "peerDependencies": {
+    "@notion-search-agent/eslint": "workspace:*"
   }
 }
