@@ -7,15 +7,22 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"vite.config.ts\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\" \"vite.config.ts\""
   },
   "dependencies": {
     "@notionhq/client": "^4.0.1",
+    "@tailwindcss/vite": "^4.1.11",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.539.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-router": "^7.8.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
@@ -26,6 +33,7 @@
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^8.57.1",
     "prettier": "^3.6.2",
+    "tw-animate-css": "^1.3.6",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   },

@@ -1,3 +1,5 @@
+import RouterProvider from './shared/Router/components/RouterProvider/RouterProvider';
+
 export default function App() {
-  return <div>Hello world!</div>;
+  return <RouterProvider />;
 }
