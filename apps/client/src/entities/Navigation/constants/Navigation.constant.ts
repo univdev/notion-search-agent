@@ -7,12 +7,12 @@ export const NAVIGATION = [
       {
         label: 'navigation.application.chat.label',
         icon: 'chat',
-        path: ROUTES.HOME.ROOT,
+        path: ROUTES.HOME.CHAT,
       },
       {
         label: 'navigation.application.histories.label',
         icon: 'history',
-        path: ROUTES.HOME.ROOT,
+        path: ROUTES.HOME.HISTORY,
       },
     ],
   },

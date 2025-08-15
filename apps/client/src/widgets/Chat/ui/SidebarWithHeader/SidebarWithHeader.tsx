@@ -10,7 +10,7 @@ export default function SidebarWithHeader() {
       <Navigation />
       <header className="Header flex items-center justify-between w-full p-4 h-[60px]">
         <SidebarTrigger />
-        <SyncNotionDocumentButton />
+        <SyncNotionDocumentButton isLoading={false} onClick={() => {}} />
       </header>
     </Fragment>
   );

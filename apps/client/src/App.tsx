@@ -1,3 +1,4 @@
+import ErrorBoundary from './apps/Router/components/ErrorBoundary/ErrorBoundary';
 import RouterProvider from './apps/Router/components/RouterProvider/RouterProvider';
 import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
@@ -5,8 +6,10 @@ import { Toaster } from 'sonner';
 export default function App() {
   return (
     <ShadcnProvider>
+      <ErrorBoundary>
+        <RouterProvider />
+      </ErrorBoundary>
       <Toaster />
-      <RouterProvider />
     </ShadcnProvider>
   );
 }

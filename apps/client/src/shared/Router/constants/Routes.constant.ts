@@ -1,6 +1,7 @@
 const ROUTES = {
   HOME: {
-    ROOT: '/',
+    CHAT: '/',
+    HISTORY: '/history',
   },
 } as const;
 
