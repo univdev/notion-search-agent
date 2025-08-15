@@ -1,6 +1,7 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
+import { Cron } from '@nestjs/schedule';
 import { Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
 import { CONFIGS } from 'src/configs/configs';
@@ -40,9 +41,39 @@ export class NotionService {
     };
   }
 
+  // 10분 간격으로 SYNCING 상태에 머무르는 동기화 데이터 제거
+  @Cron('* */10 * * * *')
+  async deleteSyncingNotionSyncHistory() {
+    await this.notionInitializeHistoryModel.deleteMany({
+      status: NotionSyncHistoryStatus.SYNCING,
+      // 생성 후 일정 시간동안 SYNCING 상태에 머무르는 데이터 제거
+      createdAt: {
+        $lt: new Date(Date.now() - CONFIGS.NOTION_SENTENCES.SYNC_DATA_MAX_LIFETIME),
+      },
+    });
+
+    return true;
+  }
+
   async sync(payload: PatchNotionSyncPayload) {
     try {
-      // TODO: 노션 문서 데이터 동기화 로직 구현
+      const lastNotionSyncHistory = await this.notionInitializeHistoryModel
+        .findOne({
+          status: NotionSyncHistoryStatus.COMPLETED,
+        })
+        .sort({ createdAt: -1 });
+
+      if (
+        lastNotionSyncHistory &&
+        Date.now() - lastNotionSyncHistory.createdAt.getTime() < CONFIGS.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME
+      ) {
+        throw new BadRequestException('Already synced within 2 minutes');
+      }
+
+      await this.deleteAllSentenceFromVectorStore();
+
+      console.log('deleteAllSentenceFromVectorStore');
+
       const notionSyncHistoryModel = await this.notionInitializeHistoryModel.create({
         ip: payload.ip,
         status: NotionSyncHistoryStatus.SYNCING,
@@ -65,16 +96,17 @@ export class NotionService {
 
         return sentences;
       } catch (error) {
-        console.error(error);
-
         await this.notionInitializeHistoryModel.updateOne(
           { _id: newNotionSyncHistory._id },
           { status: NotionSyncHistoryStatus.FAILED },
         );
 
+        if (error instanceof HttpException) throw error;
         throw new InternalServerErrorException(error);
       }
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+
       throw new InternalServerErrorException(error);
     }
   }
@@ -104,6 +136,18 @@ export class NotionService {
       return true;
     } catch {
       throw new InternalServerErrorException('Failed to insert sentences to vector store');
+    }
+  }
+
+  async deleteAllSentenceFromVectorStore() {
+    try {
+      const store = this.vectorStore.getInstance();
+      const collection = await store.collections.use(CONFIGS.WEAVIATE.COLLECTIONS.SENTENCES);
+      await collection.data.deleteMany(collection.filter.byProperty('blockId').like('*'));
+
+      return true;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
     }
   }
 

@@ -2,6 +2,7 @@ import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
 
 import { AppController } from './app.controller';
@@ -25,6 +26,7 @@ if (process.env.NODE_ENV === 'production') envFileName = '.env.production';
     ConfigModule.forRoot({
       envFilePath: envFileName,
     }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGODB_HOST),
     MongooseModule.forFeature([{ schema: NotionSyncHistorySchema, name: NotionSyncHistory.name }]),
     TerminusModule,

@@ -11,6 +11,7 @@
   "packageManager": "pnpm@10.13.1",
   "scripts": {
     "c:dev": "turbo run dev -F=@notion-search-agent/client",
+    "c:tauri": "turbo run tauri -F=@notion-search-agent/client --",
     "c:build": "turbo run build -F=@notion-search-agent/client",
     "s:dev": "turbo run start:dev -F=@notion-search-agent/server",
     "s:build": "turbo run build -F=@notion-search-agent/server",

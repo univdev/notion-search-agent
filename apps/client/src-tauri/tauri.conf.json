@@ -14,7 +14,8 @@
       {
         "title": "Notion Search Agent",
         "width": 400,
-        "height": 650
+        "height": 650,
+        "resizable": false
       }
     ],
     "security": {
