@@ -1,16 +1,16 @@
-import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, VariantProps } from 'class-variance-authority';
 import { PanelLeftIcon } from 'lucide-react';
+import * as React from 'react';
 
 import { useIsMobile } from '@/shared/Shadcn/hooks/use-mobile';
-import { cn } from '@/shared/Shadcn/utils';
 import { Button } from '@/shared/Shadcn/ui/button';
 import { Input } from '@/shared/Shadcn/ui/input';
 import { Separator } from '@/shared/Shadcn/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/shared/Shadcn/ui/sheet';
 import { Skeleton } from '@/shared/Shadcn/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
+import { cn } from '@/shared/Shadcn/utils';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;

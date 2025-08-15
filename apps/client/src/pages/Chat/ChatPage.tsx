@@ -1,13 +1,12 @@
-import ChatSidebar from '@/entities/Chat/ui/ChatSideBar/ChatSidebar';
-import SyncNotionDocumentButton from '@/entities/Chat/ui/SyncNotionDocumentButton/SyncNotionDocumentButton';
-import { SidebarTrigger } from '@/shared/Shadcn/ui/sidebar';
+import { Fragment } from 'react/jsx-runtime';
+
+import SidebarWithHeader from '@/widgets/Chat/ui/SidebarWithHeader/SidebarWithHeader';
 
 export default function ChatPage() {
   return (
-    <main className="ChatPage">
-      <ChatSidebar />
-      <SyncNotionDocumentButton isLoading={true} onClick={() => {}} />
-      <SidebarTrigger />
-    </main>
+    <Fragment>
+      <SidebarWithHeader />
+      <main className="ChatPage w-full flex-auto overflow-y-scroll">Hello world!</main>
+    </Fragment>
   );
 }

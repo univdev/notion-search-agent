@@ -40,6 +40,7 @@
     "@typescript-eslint/parser": "^8.39.0",
     "@vitejs/plugin-react": "^4.6.0",
     "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.32.0",
     "prettier": "^3.6.2",
     "tw-animate-css": "^1.3.6",
     "typescript": "~5.8.3",

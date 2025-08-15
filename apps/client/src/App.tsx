@@ -1,4 +1,4 @@
-import RouterProvider from './shared/Router/components/RouterProvider/RouterProvider';
+import RouterProvider from './apps/Router/components/RouterProvider/RouterProvider';
 import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
 

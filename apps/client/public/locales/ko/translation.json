@@ -1,0 +1,20 @@
+{
+  "sidebar": {
+    "navigation": {
+      "application": {
+        "label": "애플리케이션",
+        "chat": {
+          "label": "채팅"
+        },
+        "histories": {
+          "label": "동기화 기록"
+        }
+      }
+    }
+  },
+  "chat": {
+    "sync-notion-documents-button": {
+      "label": "동기화"
+    }
+  }
+}
