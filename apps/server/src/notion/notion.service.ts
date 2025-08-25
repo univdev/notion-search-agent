@@ -37,6 +37,7 @@ export class NotionService {
       pagination: {
         offset,
         limit,
+        loadedCount: notionSyncHistories.length,
       },
     };
   }

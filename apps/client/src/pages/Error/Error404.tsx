@@ -14,13 +14,13 @@ export default function Error404() {
   };
 
   return (
-    <main className="flex flex-direction flex-col items-center w-full flex-auto">
+    <main className="flex flex-direction flex-col items-center w-full h-[100vh] flex-auto">
       <div className="text-2xl font-bold text-center m-auto flex flex-col gap-4 items-center">
-        <DotLottieReact src={'/lottie/404.lottie'} autoplay loop />
+        <DotLottieReact style={{ maxWidth: 600 }} src={'/lottie/404.lottie'} autoplay loop />
         <p className="text-sm text-gray-600 text-center break-words px-12">
           <Trans t={t} i18nKey="404.message" components={{ br: <br /> }} />
         </p>
-        <Button type="button" variant="default" onClick={goBack} size="sm">
+        <Button className="cursor-pointer" type="button" variant="default" onClick={goBack} size="sm">
           <Trans t={t} i18nKey="404.goToHome" />
         </Button>
       </div>

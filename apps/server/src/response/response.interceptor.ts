@@ -5,7 +5,7 @@ export type Response = {
   statusCode: number;
   data: any;
   metadata?: { [key: string]: any };
-  pagination?: { offset: number; limit: number };
+  pagination?: { offset: number; limit: number; loadedCount: number };
 };
 
 @Injectable()

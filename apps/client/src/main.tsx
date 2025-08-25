@@ -4,6 +4,7 @@ import App from './App';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import './tailwind.css';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import ko from '../public/locales/ko/translation.json';
 import { LOCALES, SUPPORT_LOCALES } from './shared/Configs/locales/constants/Locales.constant';
 
@@ -20,6 +21,8 @@ i18n.use(initReactI18next).init({
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
+    <NuqsAdapter>
+      <App />
+    </NuqsAdapter>
   </React.StrictMode>,
 );

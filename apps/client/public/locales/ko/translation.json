@@ -9,12 +9,34 @@
         "histories": {
           "label": "동기화 기록"
         }
+      },
+      "chat-histories": {
+        "label": "채팅 기록",
+        "error": {
+          "message": "채팅 기록을 불러오는데 실패했어요. 다시 시도해주세요.",
+          "retry": "다시 시도"
+        },
+        "no-chat-histories": {
+          "message": "채팅 기록이 없어요. 채팅을 시작해주세요."
+        }
       }
     }
   },
   "chat": {
     "sync-notion-documents-button": {
-      "label": "동기화"
+      "label": "동기화",
+      "tooltip": "노션 문서를 동기화합니다."
+    },
+    "start": {
+      "welcome": "궁금하신 내용을 물어보세요"
+    },
+    "form": {
+      "input": {
+        "placeholder": "이 곳에 궁금한 내용을 입력하실 수 있어요",
+        "send": "전송",
+        "cancel": "취소"
+      },
+      "button": "첫 질문 시작하기"
     }
   },
   "error": {

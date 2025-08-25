@@ -10,6 +10,9 @@ const API_ROUTES = {
   NOTION: {
     PATCH_SYNC_HISTORIES: '/notion/sync-histories',
   },
+  NAVIGATION: {
+    GET_CHAT_HISTORIES: '/navigation/chat-histories',
+  },
 } as const;
 
 export default API_ROUTES;

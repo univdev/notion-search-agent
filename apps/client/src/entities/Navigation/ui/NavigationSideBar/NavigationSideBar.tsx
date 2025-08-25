@@ -1,4 +1,5 @@
 import { History, MessageSquareMore } from 'lucide-react';
+import { match } from 'ts-pattern';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
@@ -13,18 +14,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from '@/shared/Shadcn/ui/sidebar';
 
 import { NAVIGATION } from '../../constants/Navigation.constant';
+import DefaultNavigationGroup, { DefaultNavigationGroupChild } from './DefaultNavigationGroup';
+import ChatHistoriesGroup from './ChatHistoriesGroup';
 
-export default function Navigation() {
+export default function NavigationSideBar() {
   const { t } = useTranslation('sidebar');
   const navigate = useNavigate();
-  const sidebar = useSidebar();
 
   const handleClickNavigation = (path: string) => {
-    sidebar.setOpen(false);
     navigate(path);
   };
 
@@ -34,24 +34,23 @@ export default function Navigation() {
         <h2 className="font-bold">{APP.APP_NAME}</h2>
       </SidebarHeader>
       <SidebarContent>
-        {NAVIGATION.map(({ label, children }) => (
-          <SidebarGroup>
-            <SidebarGroupLabel>{t(label)}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {children.map(({ label, icon, path }) => (
-                  <SidebarMenuItem key={path} className="h-auto">
-                    <SidebarMenuButton className="cursor-pointer" onClick={() => handleClickNavigation(path)}>
-                      {icon === 'chat' && <MessageSquareMore />}
-                      {icon === 'history' && <History />}
-                      {t(label)}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        {NAVIGATION.map(({ label, children, type }) =>
+          match(type)
+            .with('default', () => {
+              return (
+                <DefaultNavigationGroup
+                  key={label}
+                  children={children as unknown as DefaultNavigationGroupChild[]}
+                  label={label}
+                  handleClickNavigation={handleClickNavigation}
+                />
+              );
+            })
+            .with('chat-histories', () => {
+              return <ChatHistoriesGroup key={label} />;
+            })
+            .run(),
+        )}
       </SidebarContent>
     </Sidebar>
   );

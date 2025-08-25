@@ -1,8 +1,7 @@
 import baseConfig from '@notion-search-agent/eslint';
-import parser from '@typescript-eslint/parser';
 import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import parser from '@typescript-eslint/parser';
 import importPlugin from 'eslint-plugin-import';
-import fsdPlugin from './eslint.config.fsd.mjs';
 
 export default [
   importPlugin.flatConfigs.recommended,
@@ -12,7 +11,7 @@ export default [
       parser,
       parserOptions: {
         project: 'tsconfig.json',
-        tsconfigRootDir: import.meta.dirname,
+        tsconfigRootDir: '.',
         sourceType: 'module',
       },
       globals: {
@@ -39,6 +38,5 @@ export default [
       'import/no-unresolved': 'off',
     },
   },
-  ...fsdPlugin,
   ...baseConfig,
 ];
