@@ -13,6 +13,9 @@ export const CONFIGS = {
     },
   },
   OPENAI: {
+    SUMMARY: {
+      MODEL: 'gpt-4o-mini',
+    },
     QUESTION: {
       MODEL: 'gpt-4o-mini',
     },

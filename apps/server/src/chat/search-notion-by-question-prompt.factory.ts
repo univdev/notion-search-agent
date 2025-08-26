@@ -1,9 +1,11 @@
 import OpenAI from 'openai';
+import { ChatHistory, ChatHistoryMessageRole } from 'src/mongoose/schemas/chat-history.schema';
 import { Sentence } from 'src/notion/notion.type';
 
 export const searchNotionByQuestionPromptFactory = (
   question: string,
   sentences: Sentence[],
+  chatHistoryMessages?: ChatHistory['messages'],
 ): OpenAI.Chat.Completions.ChatCompletionMessageParam[] => {
   const systemPrompt = `
   **Your task:**
@@ -37,11 +39,6 @@ export const searchNotionByQuestionPromptFactory = (
 
   Always base your response strictly on the provided search results and give definitive, helpful answers rather than asking for clarification.
 
-> 사용자가 물어보는 질문은 모두 'notion search agent'에 대한 질문이야. 너는 그것에 대한 답변만 해야해.\
-  만약 그 외 엉뚱한 질문을 물어보면 모른다고 해야해.\
-  \
-  라는 프롬프트도 추가해줘
-
 ⏺ You are a helpful and friendly Notion document search assistant.
 
   **Your role:**
@@ -53,11 +50,18 @@ export const searchNotionByQuestionPromptFactory = (
   - You can ONLY answer questions about "Notion Search Agent"
   - If users ask about anything else (other software, general topics, unrelated questions), respond with "I'm sorry, but I can only help with questions about Notion Search Agent."
 
+  **Conversation context:**
+  - Previous conversation history is provided to give you context
+  - Use this history to provide more natural and contextual responses
+  - Reference previous discussions when relevant to the current question
+  - Maintain conversation flow by building upon earlier exchanges
+
   **Response guidelines:**
   - Always respond in the same language as the user's question, regardless of the source document language
   - If documents are in a different language, translate and adapt the content naturally
   - Provide context and explain why the information is relevant to their question
   - Use a helpful, approachable tone with appropriate conversational elements
+  - When relevant, naturally reference previous parts of the conversation
 
   **Search results format:**
   Below are search results based on the user's question:
@@ -99,6 +103,23 @@ export const searchNotionByQuestionPromptFactory = (
       content: systemPrompt,
     },
   ];
+
+  if (chatHistoryMessages) {
+    for (const message of chatHistoryMessages) {
+      switch (message.role) {
+        case ChatHistoryMessageRole.USER:
+          prompt.push({
+            role: 'user',
+            content: message.content,
+          });
+        case ChatHistoryMessageRole.ASSISTANT:
+          prompt.push({
+            role: 'assistant',
+            content: message.content,
+          });
+      }
+    }
+  }
 
   sentences.forEach((sentence) => {
     prompt.push({

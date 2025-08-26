@@ -11,6 +11,6 @@ export class NavigationService {
   ) {}
 
   async getChatHistories() {
-    return this.chatHistoryModel.find().select('_id summary').sort({ createdAt: -1 });
+    return this.chatHistoryModel.find().select('_id summary').sort({ createdAt: 'desc' });
   }
 }

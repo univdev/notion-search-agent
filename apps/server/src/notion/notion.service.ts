@@ -42,6 +42,18 @@ export class NotionService {
     };
   }
 
+  async getLastCompletedNotionSyncHistory() {
+    const lastCompletedNotionSyncHistory = await this.notionInitializeHistoryModel
+      .findOne({
+        status: NotionSyncHistoryStatus.COMPLETED,
+      })
+      .sort({ createdAt: 'desc' });
+
+    return {
+      data: lastCompletedNotionSyncHistory,
+    };
+  }
+
   // 10분 간격으로 SYNCING 상태에 머무르는 동기화 데이터 제거
   @Cron('* */10 * * * *')
   async deleteSyncingNotionSyncHistory() {

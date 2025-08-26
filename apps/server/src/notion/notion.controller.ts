@@ -17,6 +17,11 @@ export class NotionController {
     });
   }
 
+  @Get('last-completed-history')
+  async getLastCompletedHistory() {
+    return await this.notionService.getLastCompletedNotionSyncHistory();
+  }
+
   @Patch('sync')
   async notionSync(@Ip() ip: string) {
     return await this.notionService.sync({

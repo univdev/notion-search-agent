@@ -1,4 +1,4 @@
-import { Controller, DefaultValuePipe, Get, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, DefaultValuePipe, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
 
 import { ChatHistoriesService } from './chat-histories.service';
 
@@ -24,5 +24,10 @@ export class ChatHistoriesController {
         loadedCount: items.length,
       },
     };
+  }
+
+  @Get(':id')
+  async getChatHistoryById(@Param('id') id: string) {
+    return await this.chatHistoriesService.getChatHistoryById(id);
   }
 }

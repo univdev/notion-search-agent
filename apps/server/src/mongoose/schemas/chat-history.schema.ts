@@ -26,10 +26,10 @@ export class ChatHistory {
   @Prop({ required: true })
   ip: string;
 
-  @Prop({ required: true })
+  @Prop({ default: new Date() })
   createdAt: Date;
 
-  @Prop({ required: true })
+  @Prop()
   updatedAt: Date;
 }
 
