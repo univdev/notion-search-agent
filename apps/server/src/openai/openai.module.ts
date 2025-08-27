@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigModule } from 'src/config/config.module';
 
-import { RedisService } from './redis.service';
+import { OpenaiService } from './openai.service';
 
 @Module({
   imports: [ConfigModule],
-  providers: [RedisService, ConfigService],
-  exports: [RedisService],
+  providers: [OpenaiService, ConfigService],
+  exports: [OpenaiService],
 })
-export class RedisModule {}
+export class OpenaiModule {}
