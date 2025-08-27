@@ -48,8 +48,9 @@ export class ChatService {
 
       lastHistoryId = history._id;
 
+      response.write(streamFactory('event', 'select-history'));
       response.write(
-        streamFactory({
+        streamFactory('data', {
           chatHistoryId: history._id,
         }),
       );
@@ -72,12 +73,13 @@ export class ChatService {
           stream: true,
         });
 
+        response.write(streamFactory('event', 'send-message'));
         for await (const chunk of stream) {
           const content = chunk.choices[0]?.delta?.content;
           if (content) {
             message += content;
             response.write(
-              streamFactory({
+              streamFactory('data', {
                 message,
                 isCompleted: false,
               }),
@@ -85,7 +87,8 @@ export class ChatService {
           }
         }
 
-        response.write(streamFactory({ message, isCompleted: true, isError: false }));
+        response.write(streamFactory('event', 'completed'));
+        response.write(streamFactory('data', { message, isCompleted: true, isError: false }));
 
         if (history.summary === null) {
           await this.chatHistoryModel.updateOne(
@@ -115,18 +118,29 @@ export class ChatService {
         response.end();
       });
     } catch (error) {
+      response.write(streamFactory('event', 'error'));
+
       if (lastHistoryId && historyId === undefined) {
         await this.chatHistoryModel.deleteOne({ _id: lastHistoryId });
       }
 
-      if (error instanceof HttpException)
+      if (error instanceof HttpException) {
         response.write(
-          streamFactory({
+          streamFactory('data', {
             message: error.message,
             isCompleted: false,
             isError: true,
           }),
         );
+      } else {
+        response.write(
+          streamFactory('data', {
+            message: 'Internal server error',
+            isCompleted: false,
+            isError: true,
+          }),
+        );
+      }
       response.end();
     }
   }
