@@ -27,6 +27,7 @@
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/terminus": "^11.0.0",
     "@notionhq/client": "^4.0.1",
+    "ioredis": "^5.7.0",
     "mongoose": "^8.17.1",
     "openai": "^5.12.2",
     "reflect-metadata": "^0.2.0",

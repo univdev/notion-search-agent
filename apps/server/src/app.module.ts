@@ -1,7 +1,6 @@
 import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TerminusModule } from '@nestjs/terminus';
 
@@ -13,13 +12,13 @@ import { ChatHistoriesController } from './chat-histories/chat-histories.control
 import { ChatHistoriesService } from './chat-histories/chat-histories.service';
 import { HealthController } from './health/health.controller';
 import { HealthService } from './health/health.service';
-import { ChatHistory, ChatHistorySchema } from './mongoose/schemas/chat-history.schema';
-import { NotionSyncHistory, NotionSyncHistorySchema } from './mongoose/schemas/notion-sync-history.schema';
+import { MongooseModule } from './mongoose/mongoose.module';
 import { NavigationController } from './navigation/navigation.controller';
 import { NavigationService } from './navigation/navigation.service';
 import { NotionController } from './notion/notion.controller';
 import { NotionService } from './notion/notion.service';
 import { OpenaiService } from './openai/openai.service';
+import { RedisModule } from './redis/redis.module';
 import { WeaviateService } from './weaviate/weaviate.service';
 
 let envFileName = '.env.development';
@@ -32,13 +31,10 @@ if (process.env.NODE_ENV === 'production') envFileName = '.env.production';
       envFilePath: envFileName,
     }),
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGODB_HOST),
-    MongooseModule.forFeature([
-      { schema: NotionSyncHistorySchema, name: NotionSyncHistory.name },
-      { schema: ChatHistorySchema, name: ChatHistory.name },
-    ]),
     TerminusModule,
     HttpModule,
+    RedisModule,
+    MongooseModule,
   ],
   controllers: [
     AppController,

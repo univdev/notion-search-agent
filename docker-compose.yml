@@ -20,6 +20,14 @@ services:
     volumes:
       - mongodb_data:/data/db/mongodb
 
+  redis:
+    image: redis:latest
+    ports:
+      - 6377:6379
+    volumes:
+      - redis_data:/data/db/redis
+
 volumes:
   weaviate_data:
   mongodb_data:
+  redis_data:

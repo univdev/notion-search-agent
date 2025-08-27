@@ -6,6 +6,7 @@ import { Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
 import { CONFIGS } from 'src/configs/configs';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
+import { RedisService } from 'src/redis/redis.service';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
 
 import { GetNotionSyncHistoriesPayload, PatchNotionSyncPayload, Sentence } from './notion.type';
@@ -16,6 +17,7 @@ export class NotionService {
 
   constructor(
     private readonly configService: ConfigService,
+    private readonly redisService: RedisService,
     @InjectModel(NotionSyncHistory.name)
     private readonly notionInitializeHistoryModel: Model<NotionSyncHistory>,
     private readonly vectorStore: WeaviateService,
@@ -69,7 +71,14 @@ export class NotionService {
   }
 
   async sync(payload: PatchNotionSyncPayload) {
+    const REDIS_KEY = 'notion-syncing';
+
     try {
+      const isSyncing = await this.redisService.get(REDIS_KEY);
+
+      if (isSyncing) throw new BadRequestException('Already syncing');
+
+      await this.redisService.set(REDIS_KEY, 'true', 60 * 10);
       const lastNotionSyncHistory = await this.notionInitializeHistoryModel
         .findOne({
           status: NotionSyncHistoryStatus.COMPLETED,
@@ -84,8 +93,6 @@ export class NotionService {
       }
 
       await this.deleteAllSentenceFromVectorStore();
-
-      console.log('deleteAllSentenceFromVectorStore');
 
       const notionSyncHistoryModel = await this.notionInitializeHistoryModel.create({
         ip: payload.ip,
@@ -121,6 +128,8 @@ export class NotionService {
       if (error instanceof HttpException) throw error;
 
       throw new InternalServerErrorException(error);
+    } finally {
+      await this.redisService.del(REDIS_KEY);
     }
   }
 
