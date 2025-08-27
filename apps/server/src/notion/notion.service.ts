@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
-import { CONFIGS } from 'src/configs/configs';
+import { Config } from 'src/config/config';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 import { RedisService } from 'src/redis/redis.service';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
@@ -63,7 +63,7 @@ export class NotionService {
       status: NotionSyncHistoryStatus.SYNCING,
       // 생성 후 일정 시간동안 SYNCING 상태에 머무르는 데이터 제거
       createdAt: {
-        $lt: new Date(Date.now() - CONFIGS.NOTION_SENTENCES.SYNC_DATA_MAX_LIFETIME),
+        $lt: new Date(Date.now() - Config.NOTION_SENTENCES.SYNC_DATA_MAX_LIFETIME),
       },
     });
 
@@ -87,7 +87,7 @@ export class NotionService {
 
       if (
         lastNotionSyncHistory &&
-        Date.now() - lastNotionSyncHistory.createdAt.getTime() < CONFIGS.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME
+        Date.now() - lastNotionSyncHistory.createdAt.getTime() < Config.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME
       ) {
         throw new BadRequestException('Already synced within 2 minutes');
       }
@@ -152,7 +152,7 @@ export class NotionService {
   async insertSentenceToVectorStore(sentences: Sentence[]) {
     try {
       const store = this.vectorStore.getInstance();
-      const collection = await store.collections.use(CONFIGS.WEAVIATE.COLLECTIONS.SENTENCES);
+      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
       await collection.data.insertMany(sentences);
 
       return true;
@@ -164,7 +164,7 @@ export class NotionService {
   async deleteAllSentenceFromVectorStore() {
     try {
       const store = this.vectorStore.getInstance();
-      const collection = await store.collections.use(CONFIGS.WEAVIATE.COLLECTIONS.SENTENCES);
+      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
       await collection.data.deleteMany(collection.filter.byProperty('blockId').like('*'));
 
       return true;
@@ -219,10 +219,10 @@ export class NotionService {
 
   async getSentencesByQuestion(question: string) {
     const store = this.vectorStore.getInstance();
-    const collection = await store.collections.use(CONFIGS.WEAVIATE.COLLECTIONS.SENTENCES);
+    const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
 
     return collection.query.nearText(question, {
-      limit: CONFIGS.NOTION_SENTENCES.SEARCH_LIMIT,
+      limit: Config.NOTION_SENTENCES.SEARCH_LIMIT,
       returnMetadata: ['distance'],
     });
   }

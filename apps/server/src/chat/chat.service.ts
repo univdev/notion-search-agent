@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import { Model, Schema } from 'mongoose';
 import OpenAI from 'openai';
-import { CONFIGS } from 'src/configs/configs';
+import { Config } from 'src/config/config';
 import { ChatHistory, ChatHistoryMessageRole } from 'src/mongoose/schemas/chat-history.schema';
 import { NotionService } from 'src/notion/notion.service';
 import { Sentence } from 'src/notion/notion.type';
@@ -68,7 +68,7 @@ export class ChatService {
         }) as Sentence[];
 
         const stream = await this.openai.chat.completions.create({
-          model: CONFIGS.OPENAI.QUESTION.MODEL,
+          model: Config.OPENAI.QUESTION.MODEL,
           messages: searchNotionByQuestionPromptFactory(question, sentences),
           stream: true,
         });
@@ -147,7 +147,7 @@ export class ChatService {
 
   private async createSummary(userMessage: string, assistantMessage: string) {
     const summary = await this.openai.chat.completions.create({
-      model: CONFIGS.OPENAI.SUMMARY.MODEL,
+      model: Config.OPENAI.SUMMARY.MODEL,
       messages: [
         { role: 'system', content: SUMMARY_PROMPT },
         { role: 'user', content: userMessage },
