@@ -1,7 +1,5 @@
 # Notion Search Agent
 
-![Notion Search Agent](./images/Screenshot.png)
-
 사용자가 궁금한 내용을 노션 문서에서 효율적으로 검색하여 답변해주는 챗봇 서비스입니다.  
 이런 분들이 사용하면 좋습니다:
 
