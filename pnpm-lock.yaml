@@ -26,9 +26,6 @@ importers:
       '@lukemorales/query-key-factory':
         specifier: ^1.3.4
         version: 1.3.4(@tanstack/query-core@5.85.5)(@tanstack/react-query@5.85.5(react@19.1.1))
-      '@notion-search-agent/eslint':
-        specifier: workspace:*
-        version: link:../../packages/eslint
       '@notionhq/client':
         specifier: ^4.0.1
         version: 4.0.1
@@ -129,6 +126,9 @@ importers:
         specifier: ^5.0.8
         version: 5.0.8(@types/react@19.1.9)(react@19.1.1)
     devDependencies:
+      '@notion-search-agent/eslint':
+        specifier: workspace:*
+        version: link:../../packages/eslint
       '@tauri-apps/cli':
         specifier: ^2
         version: 2.7.1
@@ -195,9 +195,6 @@ importers:
       '@nestjs/terminus':
         specifier: ^11.0.0
         version: 11.0.0(@grpc/grpc-js@1.13.4)(@grpc/proto-loader@0.7.15)(@nestjs/axios@4.0.1(@nestjs/common@10.4.20(reflect-metadata@0.2.2)(rxjs@7.8.2))(axios@1.11.0)(rxjs@7.8.2))(@nestjs/common@10.4.20(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.20)(@nestjs/mongoose@11.0.3(@nestjs/common@10.4.20(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.20)(mongoose@8.17.1)(rxjs@7.8.2))(mongoose@8.17.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
-      '@notion-search-agent/eslint':
-        specifier: workspace:*
-        version: link:../../packages/eslint
       '@notionhq/client':
         specifier: ^4.0.1
         version: 4.0.1
@@ -229,6 +226,9 @@ importers:
       '@nestjs/testing':
         specifier: ^10.0.0
         version: 10.4.20(@nestjs/common@10.4.20(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@10.4.20)(@nestjs/platform-express@10.4.20)
+      '@notion-search-agent/eslint':
+        specifier: workspace:*
+        version: link:../../packages/eslint
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.3
@@ -288,6 +288,10 @@ importers:
         version: 5.9.2
 
   packages/eslint:
+    dependencies:
+      eslint:
+        specifier: ^8.0.0
+        version: 8.57.1
     devDependencies:
       eslint-plugin-simple-import-sort:
         specifier: ^12.1.1
