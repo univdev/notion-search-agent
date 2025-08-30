@@ -1,5 +1,5 @@
-import ConversationForm from '@/entities/Conversations/ui/ConversationForm/ConversationForm';
 import ChatMessageList from '@/features/Conversations/ui/ChatMessageList/ChatMessageList';
+import SendChat from '@/features/Conversations/ui/SendChat/SendChat';
 import Flex from '@/shared/App/ui/Flex/Flex';
 import { useState } from 'react';
 
@@ -12,7 +12,7 @@ export default function ChatRoomScreen() {
         <ChatMessageList isTyping={isTyping} />
       </Flex>
       <Flex className="px-4 py-2 border-t" alignItems="center" justifyContent="center">
-        <ConversationForm onSubmit={() => {}} onTyping={setIsTyping} />
+        <SendChat onTyping={setIsTyping} />
       </Flex>
     </Flex>
   );

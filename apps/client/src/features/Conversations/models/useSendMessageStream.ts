@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -5,16 +6,19 @@ import { useShallow } from 'zustand/shallow';
 
 import { sendConversationMessageStream } from '@/entities/Conversations/api/ConversationAPI';
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
+import { CONVERSATION_QUERY_KEY } from '@/entities/Conversations/models/ConversationQueryKey';
 
 import useStreamMessagesStore from './useStreamMessagesStore';
 
 export default function useSendMessageStream() {
   const { t } = useTranslation('server-error');
+  const queryClient = useQueryClient();
   const [isPending, setPending] = useState(false);
   const [conversationId, setConversationId] = useConversationId();
   const setStreamMessage = useStreamMessagesStore(useShallow((state) => state.setMessage));
+  const clearMessage = useStreamMessagesStore(useShallow((state) => state.clearMessage));
 
-  const readStream = (response: Response) => {
+  const readStream = (response: Response, userMessage: string) => {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let currentConversationId = conversationId || null;
@@ -33,7 +37,15 @@ export default function useSendMessageStream() {
           currentConversationId = data.conversationId;
           setConversationId(data.conversationId);
         } else if (typeof data === 'object' && 'message' in data) {
-          setStreamMessage(currentConversationId as string, data.message);
+          setStreamMessage(currentConversationId as string, userMessage, data.message);
+        } else if (typeof data === 'object' && 'isCompleted' in data && data.isCompleted) {
+          queryClient.invalidateQueries({
+            queryKey: CONVERSATION_QUERY_KEY.all.queryKey,
+          });
+          queryClient.invalidateQueries({
+            queryKey: CONVERSATION_QUERY_KEY.detail(currentConversationId as string).queryKey,
+          });
+          clearMessage(currentConversationId as string);
         }
       }
 
@@ -45,6 +57,7 @@ export default function useSendMessageStream() {
 
   const handler = (message: string) => {
     setPending(true);
+    setStreamMessage(conversationId as string, message, '');
     sendConversationMessageStream(message, conversationId === '' ? undefined : conversationId)
       .then(async (response) => {
         const isOK = response.ok;
@@ -55,7 +68,7 @@ export default function useSendMessageStream() {
           throw error;
         }
 
-        readStream(response);
+        readStream(response, message);
       })
       .catch((error) => {
         if ('error' in error && 'errorKey' in error.error) toast.error(t(error.error.errorKey));

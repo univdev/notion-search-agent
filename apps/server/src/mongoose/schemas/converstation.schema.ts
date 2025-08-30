@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Schema as MongooseSchema } from 'mongoose';
 
-export enum ConverstationMessageRole {
+export enum ConversationMessageRole {
   USER = 'user',
   ASSISTANT = 'assistant',
 }
@@ -18,13 +18,11 @@ export class Conversation {
 
   @Prop({ required: true })
   messages: {
-    role: ConverstationMessageRole;
+    role: ConversationMessageRole;
     content: string;
+    senderIp?: string;
     createdAt: Date;
   }[];
-
-  @Prop({ required: true })
-  ip: string;
 
   @Prop({ default: new Date() })
   createdAt: Date;

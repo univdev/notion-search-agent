@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { Conversation, ConverstationMessageRole } from 'src/mongoose/schemas/converstation.schema';
+import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
 import { Sentence } from 'src/notion/notion.type';
 
 export const searchNotionByQuestionPromptFactory = (
@@ -107,12 +107,12 @@ export const searchNotionByQuestionPromptFactory = (
   if (chatHistoryMessages) {
     for (const message of chatHistoryMessages) {
       switch (message.role) {
-        case ConverstationMessageRole.USER:
+        case ConversationMessageRole.USER:
           prompt.push({
             role: 'user',
             content: message.content,
           });
-        case ConverstationMessageRole.ASSISTANT:
+        case ConversationMessageRole.ASSISTANT:
           prompt.push({
             role: 'assistant',
             content: message.content,

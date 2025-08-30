@@ -15,6 +15,8 @@ import { Link } from 'react-router';
 import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import { getURLWithQuery } from '@/shared/App/utils/URL';
 import { useNavigationConversationsQuery } from '../../models/useNavigationChatHistoriesQuery';
+import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/Conversations/models/Conversations.constant';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
 
 export default function ChatHistoriesGroup() {
   const { t } = useTranslation('sidebar');
@@ -57,14 +59,19 @@ type ChatHistoryItemProps = {
 
 function ChatHistoryItem({ itemId, summary }: ChatHistoryItemProps) {
   return (
-    <SidebarMenuItem key={itemId}>
-      <Link to={getURLWithQuery(ROUTES.CHAT.HOME, { historyId: itemId })}>
-        <SidebarMenuButton>
-          <MessageSquareMore />
-          <p>{summary}</p>
-        </SidebarMenuButton>
-      </Link>
-    </SidebarMenuItem>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <SidebarMenuItem key={itemId}>
+          <Link to={getURLWithQuery(ROUTES.CHAT.HOME, { [CONVERSATION_ID_QUERY_PARAM_KEY]: itemId })}>
+            <SidebarMenuButton>
+              <MessageSquareMore />
+              <p className="text-ellipsis overflow-hidden whitespace-nowrap">{summary}</p>
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
+      </TooltipTrigger>
+      <TooltipContent>{summary}</TooltipContent>
+    </Tooltip>
   );
 }
 

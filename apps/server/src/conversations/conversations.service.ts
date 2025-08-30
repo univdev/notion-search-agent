@@ -1,10 +1,10 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
-import { Model, Schema } from 'mongoose';
+import { Model } from 'mongoose';
 import OpenAI from 'openai';
 import { Config } from 'src/config/config';
-import { Conversation, ConverstationMessageRole } from 'src/mongoose/schemas/converstation.schema';
+import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
 import { Sentence } from 'src/notion/notion.type';
 import { OpenaiService } from 'src/openai/openai.service';
 import streamFactory from 'src/stream/factory/StreamFactory';
@@ -25,109 +25,101 @@ export class ConversationsService {
     this.openai = this.openAIService.getInstance();
   }
 
-  async searchNotionByQuestion(response: Response, question: string, senderIp: string, conversationId?: string) {
-    let lastHistoryId: Schema.Types.ObjectId = null;
+  async startNewConversation(response: Response, question: string, senderIp: string) {
+    response.setHeader('Content-Type', 'text/event-stream');
 
-    try {
-      response.setHeader('Content-Type', 'text/event-stream');
-      response.setHeader('Cache-Control', 'no-cache');
-      response.setHeader('Connection', 'keep-alive');
+    const conversation = await this.conversationModel.create({
+      summary: '',
+      messages: [],
+    });
 
-      let conversation: Conversation = null;
+    const sentences = await this.getSentencesByQuestion(question);
+    const stream = await this.getAssistantMessageStream(question, sentences);
 
-      if (conversationId) {
-        conversation = await this.conversationModel.findById(conversationId);
-        if (conversation === null) throw new BadRequestException('Invalid conversation id');
-      } else {
-        conversation = await this.conversationModel.create({
-          messages: [{ role: ConverstationMessageRole.USER, content: question, createdAt: new Date() }],
-          ip: senderIp,
-        });
-      }
+    response.write(
+      streamFactory('data', {
+        conversationId: conversation._id.toString(),
+      }),
+    );
 
-      lastHistoryId = conversation._id;
+    let assistantMessage = '';
 
-      response.write(streamFactory('event', 'select-conversation'));
+    for await (const chunk of stream) {
+      assistantMessage += chunk.choices[0]?.delta?.content || '';
+
       response.write(
         streamFactory('data', {
-          conversationId: conversation._id,
+          message: assistantMessage,
+          isCompleted: false,
         }),
       );
-
-      return this.getSentencesByQuestion(question).then(async (result) => {
-        let message = '';
-
-        const sentences = result.objects.map((sentence) => {
-          return {
-            blockId: sentence.properties.id,
-            value: sentence.properties.value,
-            type: sentence.properties.type,
-            language: sentence.properties.language,
-          };
-        }) as Sentence[];
-
-        const stream = await this.getAssistantMessageStream(question, sentences);
-
-        response.write(streamFactory('event', 'send-message'));
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content;
-          if (content) {
-            message += content;
-            response.write(
-              streamFactory('data', {
-                message,
-                isCompleted: false,
-              }),
-            );
-          }
-        }
-
-        response.write(streamFactory('event', 'completed'));
-        response.write(streamFactory('data', { message, isCompleted: true, isError: false }));
-
-        let summary = conversation.summary ?? (await this.createSummary(question, message));
-
-        if (conversation.summary === undefined) {
-          await this.conversationModel.updateOne(
-            { _id: conversation._id },
-            {
-              summary,
-              messages: [
-                ...conversation.messages,
-                { role: ConverstationMessageRole.ASSISTANT, content: message, createdAt: new Date() },
-              ],
-            },
-          );
-        }
-
-        response.end();
-      });
-    } catch (error) {
-      response.write(streamFactory('event', 'error'));
-
-      if (lastHistoryId && conversationId === undefined) {
-        await this.conversationModel.deleteOne({ _id: lastHistoryId });
-      }
-
-      if (error instanceof HttpException) {
-        response.write(
-          streamFactory('data', {
-            message: error.message,
-            isCompleted: false,
-            isError: true,
-          }),
-        );
-      } else {
-        response.write(
-          streamFactory('data', {
-            message: 'Internal server error',
-            isCompleted: false,
-            isError: true,
-          }),
-        );
-      }
-      response.end();
     }
+
+    const summary = await this.createSummary(question, assistantMessage);
+
+    await this.conversationModel.updateOne(
+      { _id: conversation._id },
+      {
+        summary,
+        messages: [
+          ...conversation.messages,
+          { role: ConversationMessageRole.USER, content: question, senderIp },
+          { role: ConversationMessageRole.ASSISTANT, content: assistantMessage, senderIp },
+        ],
+      },
+    );
+
+    response.write(
+      streamFactory('data', {
+        message: assistantMessage,
+        isCompleted: true,
+      }),
+    );
+
+    response.end();
+  }
+
+  async continueQuestion(response: Response, question: string, conversationId: string, senderIp: string) {
+    response.setHeader('Content-Type', 'text/event-stream');
+
+    const conversation = await this.conversationModel.findById(conversationId);
+
+    if (!conversation) throw new BadRequestException('Invalid conversation id');
+
+    const sentences = await this.getSentencesByQuestion(question);
+    const stream = await this.getAssistantMessageStream(question, sentences);
+
+    let assistantMessage = '';
+
+    for await (const chunk of stream) {
+      assistantMessage += chunk.choices[0]?.delta?.content || '';
+      response.write(
+        streamFactory('data', {
+          message: assistantMessage,
+          isCompleted: false,
+        }),
+      );
+    }
+
+    await this.conversationModel.updateOne(
+      { _id: conversationId },
+      {
+        messages: [
+          ...conversation.messages,
+          { role: ConversationMessageRole.USER, content: question, senderIp },
+          { role: ConversationMessageRole.ASSISTANT, content: assistantMessage, senderIp },
+        ],
+      },
+    );
+
+    response.write(
+      streamFactory('data', {
+        message: assistantMessage,
+        isCompleted: true,
+      }),
+    );
+
+    response.end();
   }
 
   private async getAssistantMessageStream(question: string, sentences: Sentence[]) {
@@ -157,10 +149,21 @@ export class ConversationsService {
     const store = this.weaviateService.getInstance();
     const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
 
-    return collection.query.nearText(question, {
+    const items = await collection.query.nearText(question, {
       limit: Config.NOTION_SENTENCES.SEARCH_LIMIT,
       returnMetadata: ['distance'],
     });
+
+    const sentences = items.objects.map((sentence) => {
+      return {
+        blockId: sentence.properties.id,
+        value: sentence.properties.value,
+        type: sentence.properties.type,
+        language: sentence.properties.language,
+      };
+    }) as Sentence[];
+
+    return sentences;
   }
 
   async getConversations(offset: number, limit: number) {

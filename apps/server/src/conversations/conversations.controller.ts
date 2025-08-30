@@ -34,14 +34,19 @@ export class ConversationsController {
   }
 
   @Post('/')
-  async question(
-    @Body('question') question: string,
-    @Body('conversationId') conversationId: string,
-    @Response() response: ExpressResponse,
-    @Ip() senderIp: string,
-  ) {
+  async question(@Body('question') question: string, @Response() response: ExpressResponse, @Ip() senderIp: string) {
     if (!question) throw new BadRequestException(new HttpExceptionData('conversation.question.question-required'));
 
-    return this.conversationsService.searchNotionByQuestion(response, question, senderIp, conversationId);
+    return this.conversationsService.startNewConversation(response, question, senderIp);
+  }
+
+  @Post('/:conversationId')
+  async continueQuestion(
+    @Response() response: ExpressResponse,
+    @Param('conversationId') conversationId: string,
+    @Body('question') question: string,
+    @Ip() senderIp: string,
+  ) {
+    return this.conversationsService.continueQuestion(response, question, conversationId, senderIp);
   }
 }

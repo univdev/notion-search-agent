@@ -29,7 +29,7 @@ export const getConversation = (conversationId: string) => {
 
 export const sendConversationMessageStream = (question: string, conversationId?: string) => {
   const baseURL = import.meta.env.VITE_API_URL;
-  const url = `${baseURL}${API_ROUTES.CONVERSATIONS.QUESTION}`;
+  const url = [`${baseURL}${API_ROUTES.CONVERSATIONS.QUESTION}`, conversationId].filter(Boolean).join('/');
 
   return fetch(url, {
     method: 'POST',
@@ -38,7 +38,6 @@ export const sendConversationMessageStream = (question: string, conversationId?:
     },
     body: JSON.stringify({
       question,
-      conversationId,
     }),
   });
 };

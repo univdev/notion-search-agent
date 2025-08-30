@@ -44,7 +44,10 @@ export default function ConversationForm({
   return (
     <Form
       control={form.control}
-      onSubmit={(form) => onSubmit(form.data.message)}
+      onSubmit={(event) => {
+        onSubmit(event.data.message);
+        form.reset();
+      }}
       className={cn('w-full flex flex-col gap-4', className)}
     >
       <Controller

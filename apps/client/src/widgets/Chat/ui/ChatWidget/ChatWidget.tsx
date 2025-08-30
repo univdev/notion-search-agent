@@ -1,5 +1,5 @@
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
-import useConversationQuery from '@/features/Conversations/models/useChatHistoryQuery';
+import useConversationQuery from '@/features/Conversations/models/useConversationQuery';
 import { AnimatePresence, motion } from 'motion/react';
 import ChatRoomScreen from './ChatRoomScreen';
 import ChatStartScreen from './ChatStartScreen';
