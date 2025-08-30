@@ -6,9 +6,9 @@ import { NavigationService } from './navigation.service';
 export class NavigationController {
   constructor(private readonly navigationService: NavigationService) {}
 
-  @Get('chat-histories')
-  async getChatHistories() {
-    const items = await this.navigationService.getChatHistories();
+  @Get('conversations')
+  async getConversations() {
+    const items = await this.navigationService.getConversations();
 
     return {
       data: items,

@@ -8,7 +8,10 @@ export class RedisService implements OnModuleDestroy {
   private client: Redis;
 
   constructor(private configService: ConfigService) {
-    this.client = Redis.createClient();
+    this.client = new Redis({
+      host: this.configService.get('REDIS_HOST'),
+      port: this.configService.get('REDIS_PORT'),
+    });
 
     this.client.on('error', (err) => {
       this.logger.error('Redis Client Error', err);

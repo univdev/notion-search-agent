@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule as NestMongooseModule } from '@nestjs/mongoose';
 
-import { ChatHistory, ChatHistorySchema } from './schemas/chat-history.schema';
+import { Conversation, ConversationSchema } from './schemas/converstation.schema';
 import { NotionSyncHistory, NotionSyncHistorySchema } from './schemas/notion-sync-history.schema';
 
 @Module({
@@ -9,7 +9,7 @@ import { NotionSyncHistory, NotionSyncHistorySchema } from './schemas/notion-syn
     NestMongooseModule.forRoot(process.env.MONGODB_HOST),
     NestMongooseModule.forFeature([
       { schema: NotionSyncHistorySchema, name: NotionSyncHistory.name },
-      { schema: ChatHistorySchema, name: ChatHistory.name },
+      { schema: ConversationSchema, name: Conversation.name },
     ]),
   ],
   exports: [NestMongooseModule],

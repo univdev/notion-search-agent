@@ -1,15 +1,12 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Cron } from '@nestjs/schedule';
 import { Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
-import { Config } from 'src/config/config';
+import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
-import { RedisService } from 'src/redis/redis.service';
-import { WeaviateService } from 'src/weaviate/weaviate.service';
 
-import { GetNotionSyncHistoriesPayload, PatchNotionSyncPayload, Sentence } from './notion.type';
+import { GetNotionSyncHistoriesPayload, Sentence } from './notion.type';
 
 @Injectable()
 export class NotionService {
@@ -17,18 +14,20 @@ export class NotionService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly redisService: RedisService,
     @InjectModel(NotionSyncHistory.name)
     private readonly notionInitializeHistoryModel: Model<NotionSyncHistory>,
-    private readonly vectorStore: WeaviateService,
   ) {
     try {
       this.notion = new Client({
         auth: this.configService.get('NOTION_TOKEN'),
       });
     } catch {
-      throw new Error('Failed to initialize Notion client');
+      throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.failed-connect-notion'));
     }
+  }
+
+  getClient() {
+    return this.notion;
   }
 
   async getNotionSyncHistories(payload: GetNotionSyncHistoriesPayload) {
@@ -54,123 +53,6 @@ export class NotionService {
     return {
       data: lastCompletedNotionSyncHistory,
     };
-  }
-
-  // 10분 간격으로 SYNCING 상태에 머무르는 동기화 데이터 제거
-  @Cron('* */10 * * * *')
-  async deleteSyncingNotionSyncHistory() {
-    await this.notionInitializeHistoryModel.deleteMany({
-      status: NotionSyncHistoryStatus.SYNCING,
-      // 생성 후 일정 시간동안 SYNCING 상태에 머무르는 데이터 제거
-      createdAt: {
-        $lt: new Date(Date.now() - Config.NOTION_SENTENCES.SYNC_DATA_MAX_LIFETIME),
-      },
-    });
-
-    return true;
-  }
-
-  async sync(payload: PatchNotionSyncPayload) {
-    const REDIS_KEY = 'notion-syncing';
-
-    try {
-      const isSyncing = await this.redisService.get(REDIS_KEY);
-
-      if (isSyncing) throw new BadRequestException('Already syncing');
-
-      await this.redisService.set(REDIS_KEY, 'true', 60 * 10);
-      const lastNotionSyncHistory = await this.notionInitializeHistoryModel
-        .findOne({
-          status: NotionSyncHistoryStatus.COMPLETED,
-        })
-        .sort({ createdAt: -1 });
-
-      if (
-        lastNotionSyncHistory &&
-        Date.now() - lastNotionSyncHistory.createdAt.getTime() < Config.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME
-      ) {
-        throw new BadRequestException('Already synced within 2 minutes');
-      }
-
-      await this.deleteAllSentenceFromVectorStore();
-
-      const notionSyncHistoryModel = await this.notionInitializeHistoryModel.create({
-        ip: payload.ip,
-        status: NotionSyncHistoryStatus.SYNCING,
-      });
-
-      const newNotionSyncHistory = await notionSyncHistoryModel.save();
-
-      try {
-        const startNotionPageId = this.configService.get('NOTION_PAGE_ID');
-
-        const blocks = await this.getPageBlocks(startNotionPageId);
-        const sentences = await this.getSentences(blocks);
-
-        await this.insertSentenceToVectorStore(sentences);
-
-        await this.notionInitializeHistoryModel.updateOne(
-          { _id: newNotionSyncHistory._id },
-          { status: NotionSyncHistoryStatus.COMPLETED },
-        );
-
-        return sentences;
-      } catch (error) {
-        await this.notionInitializeHistoryModel.updateOne(
-          { _id: newNotionSyncHistory._id },
-          { status: NotionSyncHistoryStatus.FAILED },
-        );
-
-        if (error instanceof HttpException) throw error;
-        throw new InternalServerErrorException(error);
-      }
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-
-      throw new InternalServerErrorException(error);
-    } finally {
-      await this.redisService.del(REDIS_KEY);
-    }
-  }
-
-  async getPageMetadata(pageId: string) {
-    const page = await this.notion.pages.retrieve({
-      page_id: pageId,
-    });
-
-    return page;
-  }
-
-  async getPageBlocks(pageId: string) {
-    const blocks = await this.notion.blocks.children.list({
-      block_id: pageId,
-    });
-
-    return blocks;
-  }
-
-  async insertSentenceToVectorStore(sentences: Sentence[]) {
-    try {
-      const store = this.vectorStore.getInstance();
-      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
-      await collection.data.insertMany(sentences);
-
-      return true;
-    } catch {
-      throw new InternalServerErrorException('Failed to insert sentences to vector store');
-    }
-  }
-
-  async deleteAllSentenceFromVectorStore() {
-    try {
-      const store = this.vectorStore.getInstance();
-      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
-      await collection.data.deleteMany(collection.filter.byProperty('blockId').like('*'));
-
-      return true;
-    } catch (error) {
-      throw new InternalServerErrorException(error);
-    }
   }
 
   async getSentences(blocks: ListBlockChildrenResponse): Promise<Sentence[]> {
@@ -217,13 +99,19 @@ export class NotionService {
     return sentences;
   }
 
-  async getSentencesByQuestion(question: string) {
-    const store = this.vectorStore.getInstance();
-    const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
-
-    return collection.query.nearText(question, {
-      limit: Config.NOTION_SENTENCES.SEARCH_LIMIT,
-      returnMetadata: ['distance'],
+  async getPageMetadata(pageId: string) {
+    const page = await this.notion.pages.retrieve({
+      page_id: pageId,
     });
+
+    return page;
+  }
+
+  async getPageBlocks(pageId: string) {
+    const blocks = await this.notion.blocks.children.list({
+      block_id: pageId,
+    });
+
+    return blocks;
   }
 }

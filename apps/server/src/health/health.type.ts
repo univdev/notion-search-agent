@@ -1,3 +1,3 @@
-import { HEALTH_STATUS } from './health.constant';
+import { Health } from './health';
 
-export type HealthStatus = (typeof HEALTH_STATUS)[keyof typeof HEALTH_STATUS];
+export type HealthStatus = (typeof Health.STATUS)[keyof typeof Health.STATUS];

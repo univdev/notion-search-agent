@@ -1,6 +1,6 @@
-import ChatPage from '@/pages/Chat/ChatPage';
+import ConversationPage from '@/pages/Conversation/ConversationPage';
 import Error404 from '@/pages/Error/Error404';
-import ROUTES from '@/shared/Router/constants/Routes.constant';
+import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import { createBrowserRouter, RouterProvider as ReactRouterProvider } from 'react-router';
 
 export default function RouterProvider() {
@@ -9,8 +9,12 @@ export default function RouterProvider() {
 
 export const router = createBrowserRouter([
   {
-    path: ROUTES.HOME.CHAT,
-    element: <ChatPage />,
+    path: ROUTES.CHAT.HOME,
+    element: <ConversationPage />,
+  },
+  {
+    path: ROUTES.SYNC_HISTORIES.NOTION,
+    element: null,
   },
   {
     path: '*',

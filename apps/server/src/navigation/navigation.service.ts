@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ChatHistory } from 'src/mongoose/schemas/chat-history.schema';
+import { Conversation } from 'src/mongoose/schemas/converstation.schema';
 
 @Injectable()
 export class NavigationService {
   constructor(
-    @InjectModel(ChatHistory.name)
-    private readonly chatHistoryModel: Model<ChatHistory>,
+    @InjectModel(Conversation.name)
+    private readonly conversationsModel: Model<Conversation>,
   ) {}
 
-  async getChatHistories() {
-    return this.chatHistoryModel.find().select('_id summary').sort({ createdAt: 'desc' });
+  async getConversations() {
+    return this.conversationsModel.find().select('_id summary').sort({ createdAt: 'desc' });
   }
 }

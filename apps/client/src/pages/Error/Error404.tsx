@@ -2,7 +2,7 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import ROUTES from '@/shared/Router/constants/Routes.constant';
+import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import { Button } from '@/shared/Shadcn/ui/button';
 
 export default function Error404() {
@@ -10,7 +10,7 @@ export default function Error404() {
   const navigate = useNavigate();
 
   const goBack = () => {
-    navigate(ROUTES.HOME.CHAT);
+    navigate(ROUTES.CHAT.HOME);
   };
 
   return (

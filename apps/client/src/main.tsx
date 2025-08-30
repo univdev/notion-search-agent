@@ -6,7 +6,7 @@ import { initReactI18next } from 'react-i18next';
 import './tailwind.css';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import ko from '../public/locales/ko/translation.json';
-import { LOCALES, SUPPORT_LOCALES } from './shared/Configs/locales/constants/Locales.constant';
+import { LOCALES, SUPPORT_LOCALES } from './shared/Configs/constants/Locales.constant';
 
 i18n.use(initReactI18next).init({
   lng: LOCALES.lng,

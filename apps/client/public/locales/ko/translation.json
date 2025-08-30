@@ -17,7 +17,7 @@
           "retry": "다시 시도"
         },
         "no-chat-histories": {
-          "message": "채팅 기록이 없어요. 채팅을 시작해주세요."
+          "message": "채팅 기록이 없어요.<br />채팅을 시작해주세요."
         }
       }
     }
@@ -27,12 +27,17 @@
       "label": "동기화",
       "tooltip": "노션 문서를 동기화합니다."
     },
+    "sync-notion-documents-success": {
+      "message": "노션 문서를 동기화했어요."
+    },
+    "sync-notion-documents-error": {
+      "message": "노션 문서를 동기화하는데 실패했어요."
+    },
     "start": {
       "welcome": "궁금하신 내용을 물어보세요"
     },
     "form": {
       "input": {
-        "placeholder": "이 곳에 궁금한 내용을 입력하실 수 있어요",
         "send": "전송",
         "cancel": "취소"
       },
@@ -47,6 +52,20 @@
     "500": {
       "message": "뭔가 문제가 있는 것 같아요.<br />새로 고쳐봐야 할 것 같아요.",
       "retry": "고쳐보기"
+    }
+  },
+  "server-error": {
+    "sync-notion-documents": {
+      "failed-connect-notion": "노션 연결에 실패했어요",
+      "already-syncing": "동기화 요청을 처리중이예요",
+      "unknown-error": "알 수 없는 이유로 노션 동기화를 실패했어요",
+      "failed-save-sentences": "노션 문서를 벡터 저장소에 저장하는데 실패했어요"
+    },
+    "conversation": {
+      "question": {
+        "question-required": "질문을 입력해주세요",
+        "unknown-error": "알 수 없는 이유로 질문을 보내지 못했어요"
+      }
     }
   }
 }
