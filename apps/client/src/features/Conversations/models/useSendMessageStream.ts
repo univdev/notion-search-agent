@@ -33,9 +33,7 @@ export default function useSendMessageStream() {
       const values = exportStreamMessageObject(decoder.decode(value, { stream: true }));
 
       for (const { data } of values) {
-        console.log('data', data);
         if (typeof data === 'object' && 'isCompleted' in data && data.isCompleted) {
-          console.log('isCompleted');
           queryClient.invalidateQueries({
             queryKey: CONVERSATION_QUERY_KEY.all.queryKey,
           });

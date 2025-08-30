@@ -7,10 +7,6 @@ export const searchNotionByQuestionPromptFactory = (
   sentences: Sentence[],
   messages?: Conversation['messages'],
 ): OpenAI.Chat.Completions.ChatCompletionMessageParam[] => {
-  console.log('question', question);
-  console.log('sentences', sentences);
-  console.log('messages', messages);
-
   const systemPrompt = `You are a helpful and knowledgeable assistant for Notion Search Agent documentation.
 
   **Core principles:**
