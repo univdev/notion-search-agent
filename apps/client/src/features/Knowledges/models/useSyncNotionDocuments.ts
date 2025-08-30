@@ -6,7 +6,7 @@ import useSyncNotionDocumentsMutation from './useSyncNotionDocumentsMutation';
 
 export default function useSyncNotionDocuments() {
   const { t: serverErrorT } = useTranslation('server-error');
-  const { t: chatT } = useTranslation('chat');
+  const { t: chatT } = useTranslation('conversation');
   const { mutateAsync: syncNotionDocuments, isPending } = useSyncNotionDocumentsMutation();
 
   const handler = () => {

@@ -9,12 +9,14 @@ import { ReactNode } from 'react';
 import NormalNavigationGroup, {
   NormalNavigationGroupChild,
 } from '@/entities/Navigation/ui/NormalNavigationGroup/NormalNavigationGroup';
+import { cn } from '@/shared/Shadcn/utils';
 
 export type NavigationSidebarProps = {
+  className?: string;
   children: ReactNode;
 };
 
-export default function NavigationSidebar({ children }: NavigationSidebarProps) {
+export default function NavigationSidebar({ children, className }: NavigationSidebarProps) {
   const navigate = useNavigate();
 
   const handleClickNavigation = (path: string) => {
@@ -23,7 +25,7 @@ export default function NavigationSidebar({ children }: NavigationSidebarProps) 
 
   return (
     <SidebarProvider>
-      <Sidebar className="bg-background">
+      <Sidebar className={cn('bg-background', className)}>
         <SidebarHeader className="flex items-center justify-center h-[60px]">
           <h2 className="font-bold">{APP.APP_NAME}</h2>
         </SidebarHeader>

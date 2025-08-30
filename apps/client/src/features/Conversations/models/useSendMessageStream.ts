@@ -58,7 +58,7 @@ export default function useSendMessageStream() {
   const handler = (message: string) => {
     setPending(true);
     setStreamMessage(conversationId as string, message, '');
-    sendConversationMessageStream(message, conversationId === '' ? undefined : conversationId)
+    sendConversationMessageStream(message, conversationId === null ? undefined : conversationId)
       .then(async (response) => {
         const isOK = response.ok;
         const contentType = response.headers.get('content-type');

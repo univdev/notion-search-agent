@@ -1,9 +1,19 @@
 import SyncronizeNotionDocumentsButton from '@/features/Knowledges/ui/SyncronizeNotionDocumentsButton';
 import { SidebarTrigger } from '@/shared/Shadcn/ui/sidebar';
+import { cn } from '@/shared/Shadcn/utils';
 
-export default function ConversationHeader() {
+export type ConversationHeaderProps = {
+  className?: string;
+};
+
+export default function ConversationHeader({ className }: ConversationHeaderProps) {
   return (
-    <header className="Header flex items-center justify-between w-full p-4 h-[60px]">
+    <header
+      className={cn(
+        'conversation-header flex items-center justify-between w-full p-4 h-[var(--conversation-header-height)] bg-white',
+        className,
+      )}
+    >
       <SidebarTrigger />
       <SyncronizeNotionDocumentsButton />
     </header>

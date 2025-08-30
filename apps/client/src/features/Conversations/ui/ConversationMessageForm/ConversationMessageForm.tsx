@@ -1,11 +1,11 @@
 import ConversationForm from '@/entities/Conversations/ui/ConversationForm/ConversationForm';
 import useSendMessageStream from '../../models/useSendMessageStream';
 
-export type SendChatProps = {
+export type ConversationMessageFormProps = {
   onTyping?: (isTyping: boolean) => void;
 };
 
-export default function SendChat({ onTyping }: SendChatProps) {
+export default function ConversationMessageForm({ onTyping }: ConversationMessageFormProps) {
   const [handleSubmit] = useSendMessageStream();
 
   return (

@@ -25,7 +25,7 @@ export default function ConversationInput({
   onCancel,
   ...props
 }: ConversationInputProps) {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('conversation');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   return (

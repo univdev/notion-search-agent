@@ -44,7 +44,9 @@ type UserCommentProps = {
 
 function UserComment({ message }: UserCommentProps) {
   return (
-    <div className={cn('chat-message-comment rounded-4xl px-4 py-2 max-w-[65%] bg-yellow-300')}>
+    <div
+      className={cn('chat-message-comment chat-message-comment--user rounded-4xl px-4 py-2 max-w-[65%] bg-yellow-300')}
+    >
       <MarkdownViewer>{message}</MarkdownViewer>
     </div>
   );
@@ -56,7 +58,7 @@ type AssistantCommentProps = {
 
 function AssistantComment({ message }: AssistantCommentProps) {
   return (
-    <div className="chat-message-comment">
+    <div className="chat-message-comment chat-message-comment--assistant w-full">
       <MarkdownViewer>{message}</MarkdownViewer>
     </div>
   );

@@ -62,7 +62,7 @@ function ChatHistoryItem({ itemId, summary }: ChatHistoryItemProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         <SidebarMenuItem key={itemId}>
-          <Link to={getURLWithQuery(ROUTES.CHAT.HOME, { [CONVERSATION_ID_QUERY_PARAM_KEY]: itemId })}>
+          <Link to={ROUTES.CONVERSATIONS.DETAIL.replace(`:${CONVERSATION_ID_QUERY_PARAM_KEY}`, itemId)}>
             <SidebarMenuButton>
               <MessageSquareMore />
               <p className="text-ellipsis overflow-hidden whitespace-nowrap">{summary}</p>

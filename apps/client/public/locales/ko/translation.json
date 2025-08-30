@@ -22,7 +22,7 @@
       }
     }
   },
-  "chat": {
+  "conversation": {
     "sync-notion-documents-button": {
       "label": "동기화",
       "tooltip": "노션 문서를 동기화합니다."
@@ -42,7 +42,8 @@
         "cancel": "취소"
       },
       "button": "첫 질문 시작하기"
-    }
+    },
+    "scroll-to-bottom": "맨 아래로 이동하기"
   },
   "error": {
     "404": {

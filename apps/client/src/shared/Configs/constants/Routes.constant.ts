@@ -1,6 +1,7 @@
 const ROUTES = {
-  CHAT: {
+  CONVERSATIONS: {
     HOME: '/',
+    DETAIL: '/conversations/:conversationId',
   },
   SYNC_HISTORIES: {
     NOTION: '/histories/notion',

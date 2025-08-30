@@ -10,7 +10,7 @@ export default function Error500() {
   const navigate = useNavigate();
 
   const goBack = () => {
-    navigate(ROUTES.CHAT.HOME);
+    navigate(ROUTES.CONVERSATIONS.HOME);
   };
 
   return (

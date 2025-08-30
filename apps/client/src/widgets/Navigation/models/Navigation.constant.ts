@@ -8,7 +8,7 @@ export const NAVIGATION = [
       {
         label: 'navigation.application.chat.label',
         icon: 'chat',
-        path: ROUTES.CHAT.HOME,
+        path: ROUTES.CONVERSATIONS.HOME,
       },
       {
         label: 'navigation.application.histories.label',

@@ -12,7 +12,7 @@ export type SyncronizeButtonProps = {
 };
 
 export default function SyncronizeButton({ isLoading = false, onClick }: SyncronizeButtonProps) {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation('conversation');
 
   return (
     <Tooltip>
