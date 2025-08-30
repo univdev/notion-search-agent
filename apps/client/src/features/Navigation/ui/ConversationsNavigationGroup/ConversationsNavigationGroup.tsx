@@ -10,13 +10,13 @@ import { MessageSquareMore } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
 import { Button } from '@/shared/Shadcn/ui/button';
 import Flex from '@/shared/App/ui/Flex/Flex';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { Link } from 'react-router';
 import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import { getURLWithQuery } from '@/shared/App/utils/URL';
 import { useNavigationConversationsQuery } from '../../models/useNavigationChatHistoriesQuery';
 import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/Conversations/models/Conversations.constant';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
+import { Spinner } from '@/shared/Shadcn/ui/spinner';
 
 export default function ChatHistoriesGroup() {
   const { t } = useTranslation('sidebar');

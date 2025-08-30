@@ -33,12 +33,9 @@ export default function useSendMessageStream() {
       const values = exportStreamMessageObject(decoder.decode(value, { stream: true }));
 
       for (const { data } of values) {
-        if (typeof data === 'object' && 'conversationId' in data) {
-          currentConversationId = data.conversationId;
-          setConversationId(data.conversationId);
-        } else if (typeof data === 'object' && 'message' in data) {
-          setStreamMessage(currentConversationId as string, userMessage, data.message);
-        } else if (typeof data === 'object' && 'isCompleted' in data && data.isCompleted) {
+        console.log('data', data);
+        if (typeof data === 'object' && 'isCompleted' in data && data.isCompleted) {
+          console.log('isCompleted');
           queryClient.invalidateQueries({
             queryKey: CONVERSATION_QUERY_KEY.all.queryKey,
           });
@@ -46,6 +43,11 @@ export default function useSendMessageStream() {
             queryKey: CONVERSATION_QUERY_KEY.detail(currentConversationId as string).queryKey,
           });
           clearMessage(currentConversationId as string);
+        } else if (typeof data === 'object' && 'conversationId' in data) {
+          currentConversationId = data.conversationId;
+          setConversationId(data.conversationId);
+        } else if (typeof data === 'object' && 'message' in data) {
+          setStreamMessage(currentConversationId as string, userMessage, data.message);
         }
       }
 

@@ -1,10 +1,8 @@
-import Markdown from 'react-markdown';
-
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import Flex from '@/shared/App/ui/Flex/Flex';
 import { cn } from '@/shared/Shadcn/utils';
 import { ComponentProps } from 'react';
 import MarkdownViewer from '@/shared/App/ui/MarkdownViewer/MarkdownViewer';
+import { Spinner } from '@/shared/Shadcn/ui/spinner';
 
 export const CHAT_MESSAGE_SENDER = {
   USER: 'user',

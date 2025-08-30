@@ -34,7 +34,7 @@ export class ConversationsService {
     });
 
     const sentences = await this.getSentencesByQuestion(question);
-    const stream = await this.getAssistantMessageStream(question, sentences);
+    const stream = await this.getAssistantMessageStream(question, sentences, []);
 
     response.write(
       streamFactory('data', {
@@ -86,8 +86,10 @@ export class ConversationsService {
 
     if (!conversation) throw new BadRequestException('Invalid conversation id');
 
+    const MESSAGE_LIMIT = 10;
+    const messages = conversation.messages.slice(MESSAGE_LIMIT * -1);
     const sentences = await this.getSentencesByQuestion(question);
-    const stream = await this.getAssistantMessageStream(question, sentences);
+    const stream = await this.getAssistantMessageStream(question, sentences, messages);
 
     let assistantMessage = '';
 
@@ -122,10 +124,10 @@ export class ConversationsService {
     response.end();
   }
 
-  private async getAssistantMessageStream(question: string, sentences: Sentence[]) {
+  private async getAssistantMessageStream(question: string, sentences: Sentence[], messages: Conversation['messages']) {
     const stream = await this.openai.chat.completions.create({
       model: Config.OPENAI.QUESTION.MODEL,
-      messages: searchNotionByQuestionPromptFactory(question, sentences),
+      messages: searchNotionByQuestionPromptFactory(question, sentences, messages),
       stream: true,
     });
 
