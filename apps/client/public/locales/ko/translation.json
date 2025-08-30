@@ -53,6 +53,12 @@
     "500": {
       "message": "뭔가 문제가 있는 것 같아요.<br />새로 고쳐봐야 할 것 같아요.",
       "retry": "고쳐보기"
+    },
+    "server-error": {
+      "health-check": {
+        "message": "서버가 동작하지 않아요...",
+        "retry": "다시 시도해볼래요"
+      }
     }
   },
   "server-error": {

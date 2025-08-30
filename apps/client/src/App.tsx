@@ -3,13 +3,16 @@ import ErrorBoundary from './apps/Router/components/ErrorBoundary/ErrorBoundary'
 import RouterProvider from './apps/Router/components/RouterProvider/RouterProvider';
 import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
+import ServerErrorDetector from './features/Health/components/ServerErrorDetector/ServerErrorDetector';
 
 export default function App() {
   return (
     <ShadcnProvider>
       <ErrorBoundary>
         <ReactQueryProvider>
-          <RouterProvider />
+          <ServerErrorDetector>
+            <RouterProvider />
+          </ServerErrorDetector>
         </ReactQueryProvider>
       </ErrorBoundary>
       <Toaster />

@@ -1,33 +1,45 @@
 import { useEffect, useState } from 'react';
 
-export default function useDetectScrollBottom(gap: number = 0) {
+const SCROLL_TO_BOTTOM_BUTTON_GAP = 120;
+
+export default function useDetectScrollBottom(gap: number = SCROLL_TO_BOTTOM_BUTTON_GAP) {
   const [isBottom, setIsBottom] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleScroll: EventListener = () => {
-      const { scrollTop, scrollHeight, clientHeight } = window.document.documentElement;
-      const isBottom = scrollTop + clientHeight + gap >= scrollHeight;
+    const observer = new ResizeObserver(checkBottom);
+    observer.observe(window.document.documentElement);
 
-      setIsBottom(isBottom);
-    };
-
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', checkBottom);
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+      window.removeEventListener('scroll', checkBottom);
     };
   }, []);
 
-  const scrollToBottom = () => {
-    if (isBottom) return;
+  const checkBottom = () => {
+    const { scrollTop, scrollHeight, clientHeight } = window.document.documentElement;
+    const isBottom = scrollTop + clientHeight + gap >= scrollHeight;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight;
 
+    setIsBottom(isBottom);
+    setIsAtBottom(isAtBottom);
+  };
+
+  const scrollToBottom = () => {
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
     });
   };
 
-  return [isBottom, scrollToBottom] as const;
+  return {
+    isBottom,
+    isAtBottom,
+    scrollToBottom,
+    checkBottom,
+  } as const;
 }

@@ -49,7 +49,6 @@ export class RedisService implements OnModuleDestroy {
     return await this.client.expire(key, seconds);
   }
 
-  // 원시 클라이언트 접근
   getClient(): Redis {
     return this.client;
   }

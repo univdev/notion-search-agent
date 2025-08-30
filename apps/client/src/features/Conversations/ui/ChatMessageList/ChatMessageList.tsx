@@ -14,12 +14,15 @@ export type ChatMessageListProps = {
 
 export default function ChatMessageList({ className, isTyping = false }: ChatMessageListProps) {
   const [conversationId] = useConversationId();
+
+  if (conversationId === null) throw new Error('Conversation ID is not set');
+
   const streamMessages = useStreamMessagesStore(useShallow((state) => state.messages));
   const [userMessage, assistantMessageStream] = streamMessages[conversationId] ?? [];
-  const { data: chatHistory } = useConversationQuery(conversationId);
-  const messages = chatHistory?.data.messages ?? [];
+  const { data: conversation } = useConversationQuery(conversationId);
+  const messages = conversation?.data.messages ?? [];
 
-  useConversationScroll([userMessage, assistantMessageStream]);
+  useConversationScroll(messages, assistantMessageStream ?? '');
 
   return (
     <Flex

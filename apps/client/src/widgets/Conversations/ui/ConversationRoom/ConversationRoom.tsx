@@ -7,11 +7,9 @@ import Flex from '@/shared/App/ui/Flex/Flex';
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 
-const SCROLL_TO_BOTTOM_BUTTON_GAP = 120;
-
 export default function ConversationRoom() {
   const [isTyping, setIsTyping] = useState(false);
-  const [isBottom] = useDetectScrollBottom(SCROLL_TO_BOTTOM_BUTTON_GAP);
+  const { isBottom } = useDetectScrollBottom();
 
   return (
     <Flex className="conversation-room flex-auto" direction="column">

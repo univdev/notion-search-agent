@@ -10,7 +10,7 @@ export type ScrollToBottomButtonProps = {
 
 export default function ScrollToBottomButton({ className }: ScrollToBottomButtonProps) {
   const { t } = useTranslation('conversation');
-  const [_, scrollToBottom] = useDetectScrollBottom();
+  const { scrollToBottom } = useDetectScrollBottom();
 
   return (
     <Button
