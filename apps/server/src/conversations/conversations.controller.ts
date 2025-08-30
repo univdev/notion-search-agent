@@ -34,14 +34,14 @@ export class ConversationsController {
   }
 
   @Post('/')
-  async conversation(
+  async question(
     @Body('question') question: string,
-    @Body('converstationId') converstationId: string,
+    @Body('conversationId') conversationId: string,
     @Response() response: ExpressResponse,
     @Ip() senderIp: string,
   ) {
     if (!question) throw new BadRequestException(new HttpExceptionData('conversation.question.question-required'));
 
-    return this.conversationsService.searchNotionByQuestion(response, question, senderIp, converstationId);
+    return this.conversationsService.searchNotionByQuestion(response, question, senderIp, conversationId);
   }
 }

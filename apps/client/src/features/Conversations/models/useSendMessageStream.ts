@@ -1,0 +1,100 @@
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
+import { useShallow } from 'zustand/shallow';
+
+import { sendConversationMessageStream } from '@/entities/Conversations/api/ConversationAPI';
+import useConversationId from '@/entities/Conversations/hooks/useConversationId';
+
+import useStreamMessagesStore from './useStreamMessagesStore';
+
+export default function useSendMessageStream() {
+  const { t } = useTranslation('server-error');
+  const [isPending, setPending] = useState(false);
+  const [conversationId, setConversationId] = useConversationId();
+  const setStreamMessage = useStreamMessagesStore(useShallow((state) => state.setMessage));
+
+  const readStream = (response: Response) => {
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let currentConversationId = conversationId || null;
+
+    if (!reader) return null;
+
+    const read = async () => {
+      const { done, value } = await reader.read();
+
+      if (done) return;
+
+      const values = exportStreamMessageObject(decoder.decode(value, { stream: true }));
+
+      for (const { data } of values) {
+        if (typeof data === 'object' && 'conversationId' in data) {
+          currentConversationId = data.conversationId;
+          setConversationId(data.conversationId);
+        } else if (typeof data === 'object' && 'message' in data) {
+          setStreamMessage(currentConversationId as string, data.message);
+        }
+      }
+
+      read();
+    };
+
+    read();
+  };
+
+  const handler = (message: string) => {
+    setPending(true);
+    sendConversationMessageStream(message, conversationId === '' ? undefined : conversationId)
+      .then(async (response) => {
+        const isOK = response.ok;
+        const contentType = response.headers.get('content-type');
+
+        if (contentType?.includes('application/json') && isOK === false) {
+          const error = await response.json();
+          throw error;
+        }
+
+        readStream(response);
+      })
+      .catch((error) => {
+        if ('error' in error && 'errorKey' in error.error) toast.error(t(error.error.errorKey));
+        else toast.error(t('server-error.conversation.question.unknown-error'));
+      })
+      .finally(() => {
+        setPending(false);
+      });
+  };
+
+  return [handler, isPending] as const;
+}
+
+function exportStreamMessageObject(data: string): { event: string; data: Record<string, string> | string }[] {
+  const messages: { event: string; data: Record<string, string> | string }[] = data
+    .split('\n')
+    .filter(Boolean)
+    .map((message) =>
+      message
+        .split(new RegExp(/^([\w]{1,}:) (.+)/))
+        .map((m) => m.trim())
+        .filter(Boolean),
+    )
+    .map(([event, data]) => {
+      const eventName = event.split(':')[0];
+
+      try {
+        const parsedData = JSON.parse(data);
+        return {
+          event: eventName,
+          data: parsedData,
+        };
+      } catch {
+        return {
+          event: eventName,
+          data,
+        };
+      }
+    });
+
+  return messages;
+}

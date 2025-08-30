@@ -5,7 +5,6 @@ import { Model, Schema } from 'mongoose';
 import OpenAI from 'openai';
 import { Config } from 'src/config/config';
 import { Conversation, ConverstationMessageRole } from 'src/mongoose/schemas/converstation.schema';
-import { NotionService } from 'src/notion/notion.service';
 import { Sentence } from 'src/notion/notion.type';
 import { OpenaiService } from 'src/openai/openai.service';
 import streamFactory from 'src/stream/factory/StreamFactory';
@@ -19,7 +18,6 @@ export class ConversationsService {
 
   constructor(
     private readonly weaviateService: WeaviateService,
-    private readonly notionService: NotionService,
     private readonly openAIService: OpenaiService,
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<Conversation>,
@@ -52,7 +50,7 @@ export class ConversationsService {
       response.write(streamFactory('event', 'select-conversation'));
       response.write(
         streamFactory('data', {
-          converstationId: conversation._id,
+          conversationId: conversation._id,
         }),
       );
 
@@ -68,11 +66,7 @@ export class ConversationsService {
           };
         }) as Sentence[];
 
-        const stream = await this.openai.chat.completions.create({
-          model: Config.OPENAI.QUESTION.MODEL,
-          messages: searchNotionByQuestionPromptFactory(question, sentences),
-          stream: true,
-        });
+        const stream = await this.getAssistantMessageStream(question, sentences);
 
         response.write(streamFactory('event', 'send-message'));
         for await (const chunk of stream) {
@@ -91,25 +85,15 @@ export class ConversationsService {
         response.write(streamFactory('event', 'completed'));
         response.write(streamFactory('data', { message, isCompleted: true, isError: false }));
 
-        if (conversation.summary === null) {
+        let summary = conversation.summary ?? (await this.createSummary(question, message));
+
+        if (conversation.summary === undefined) {
           await this.conversationModel.updateOne(
             { _id: conversation._id },
             {
-              summary: await this.createSummary(question, message),
+              summary,
               messages: [
                 ...conversation.messages,
-                { role: ConverstationMessageRole.USER, content: question, createdAt: new Date() },
-                { role: ConverstationMessageRole.ASSISTANT, content: message, createdAt: new Date() },
-              ],
-            },
-          );
-        } else {
-          await this.conversationModel.updateOne(
-            { _id: conversation._id },
-            {
-              messages: [
-                ...conversation.messages,
-                { role: ConverstationMessageRole.USER, content: question, createdAt: new Date() },
                 { role: ConverstationMessageRole.ASSISTANT, content: message, createdAt: new Date() },
               ],
             },
@@ -144,6 +128,16 @@ export class ConversationsService {
       }
       response.end();
     }
+  }
+
+  private async getAssistantMessageStream(question: string, sentences: Sentence[]) {
+    const stream = await this.openai.chat.completions.create({
+      model: Config.OPENAI.QUESTION.MODEL,
+      messages: searchNotionByQuestionPromptFactory(question, sentences),
+      stream: true,
+    });
+
+    return stream;
   }
 
   private async createSummary(userMessage: string, assistantMessage: string) {

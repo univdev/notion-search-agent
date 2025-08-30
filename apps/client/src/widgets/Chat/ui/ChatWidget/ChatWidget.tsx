@@ -8,8 +8,8 @@ import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import ANIMATION_VARIANTS from '@/shared/App/animations/Animation';
 
 export default function ChatWidget() {
-  const [chatHistoryId] = useConversationId();
-  const { data: chatHistory, isError } = useConversationQuery(chatHistoryId);
+  const [conversationId] = useConversationId();
+  const { data: conversation, isError } = useConversationQuery(conversationId);
 
   if (isError) return redirect(ROUTES.CHAT.HOME);
 
@@ -17,7 +17,7 @@ export default function ChatWidget() {
     <main className="ChatPage w-full flex-auto">
       <AnimatePresence>
         {(() => {
-          if (chatHistory)
+          if (conversation)
             return (
               <ChatRoomScreenMotion
                 variants={ANIMATION_VARIANTS.FADE_IN_UP}
