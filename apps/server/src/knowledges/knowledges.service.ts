@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
-import { Config } from 'src/config/config';
 import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 import { NotionService } from 'src/notion/notion.service';
@@ -16,6 +15,8 @@ export class KnowledgesService {
   private readonly NOTION_DOCUMENT_COLLECTION_NAME = 'NotionDocuments';
   private readonly EMBEDDING_MODEL = 'text-embedding-3-small';
   private readonly EMBEDDING_DIMENSIONS = 1536;
+
+  private readonly SYNC_DATA_MAX_LIFETIME = 1000 * 60 * 60;
 
   private readonly REDIS_SCHEDULE_KEY = 'knowledges:sync-notion-documents';
 
@@ -33,7 +34,7 @@ export class KnowledgesService {
       status: NotionSyncHistoryStatus.SYNCING,
       // 생성 후 일정 시간동안 SYNCING 상태에 머무르는 데이터 제거
       createdAt: {
-        $lt: new Date(Date.now() - Config.NOTION_SENTENCES.SYNC_DATA_MAX_LIFETIME),
+        $lt: new Date(Date.now() - this.SYNC_DATA_MAX_LIFETIME),
       },
     });
 
