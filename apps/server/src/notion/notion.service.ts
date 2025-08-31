@@ -1,12 +1,17 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { Client, ListBlockChildrenResponse } from '@notionhq/client';
+import { BlockObjectResponse, Client } from '@notionhq/client';
 import { Model } from 'mongoose';
 import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 
-import { GetNotionSyncHistoriesPayload, Sentence } from './notion.type';
+import {
+  GetNotionSyncHistoriesPayload,
+  NotionMetadata,
+  RichTextAnnotation,
+  SearchedNotionDocument,
+} from './notion.type';
 
 @Injectable()
 export class NotionService {
@@ -55,63 +60,139 @@ export class NotionService {
     };
   }
 
-  async getSentences(blocks: ListBlockChildrenResponse): Promise<Sentence[]> {
-    const validTypes = [
-      'paragraph',
+  async getNotionDocument(blockId: string) {
+    return this.notion.blocks.children.list({
+      block_id: blockId,
+    });
+  }
+
+  async getNotionMetadata(pageId: string): Promise<NotionMetadata> {
+    return this.notion.pages.retrieve({
+      page_id: pageId,
+    }) as unknown as NotionMetadata;
+  }
+
+  async getAllNotionDocuments(
+    blockId: string,
+    parentPageId?: string,
+    previousResult = new Map<string, SearchedNotionDocument>(),
+    depth: number = 0,
+  ) {
+    const pageId = parentPageId || blockId;
+    const result: Map<string, SearchedNotionDocument> = previousResult;
+    const document = await this.getNotionDocument(blockId);
+    const metadata = await this.getNotionMetadata(pageId);
+    const contentPropertyKeys = [
       'heading_1',
       'heading_2',
       'heading_3',
+      'paragraph',
       'bulleted_list_item',
-      'child_page',
-      'code',
+      'numbered_list_item',
+      'callout',
       'quote',
-      'toggle',
-    ] as const;
-    const sentences: Sentence[] = [];
+      'code',
+      'image',
+    ];
 
-    for (const result of blocks.results) {
-      const typeIndex = validTypes.findIndex((type) => type in result);
-      const type = validTypes[typeIndex];
+    const nextPagePropertyKeys = ['child_page'];
+    const pageTitle = metadata.properties.title.title.map((o) => o.plain_text).join('');
+    const pageCreatedAt = metadata.created_time;
+    const pageUpdatedAt = metadata.last_edited_time;
+    const pageDocumentUrl = metadata.url;
 
-      if (type in result && result[type]?.rich_text?.length > 0) {
-        let language: string = undefined;
-
-        if ('language' in result[type]) language = result[type].language;
-
-        sentences.push({
-          blockId: result.id,
-          value: result[type].rich_text.map((text) => text.plain_text).join(''),
-          type,
-          language,
+    for (let i = 0; i < document.results.length; i += 1) {
+      const block = document.results[i] as BlockObjectResponse;
+      if (result.has(pageId) === false)
+        result.set(pageId, {
+          title: pageTitle,
+          content: '',
+          createdAt: pageCreatedAt,
+          updatedAt: pageUpdatedAt,
+          documentUrl: pageDocumentUrl,
         });
+
+      const blockType = block.type;
+      const hasChildren = 'has_children' in block ? block['has_children'] : false;
+
+      if (nextPagePropertyKeys.includes(blockType)) {
+        const nextPageId = block.id;
+        await this.getAllNotionDocuments(block.id, nextPageId, result, depth + 1);
       }
 
-      if ('has_children' in result && result.has_children) {
-        const blockId = result.id;
-        this.getPageBlocks(blockId).then(async (children) => {
-          sentences.push(...(await this.getSentences(children)));
-        });
+      for (const contentPropertyKey of contentPropertyKeys) {
+        if (contentPropertyKey in block) {
+          const richText = block[contentPropertyKey].rich_text ?? [];
+
+          if (Array.isArray(richText)) {
+            const longText = [];
+
+            for (const richTextItem of richText) {
+              const plainText = richTextItem?.plain_text;
+              const annotation = richTextItem?.annotations as RichTextAnnotation;
+              const formattedText = this.factoryTextAnnotation(annotation, plainText);
+
+              longText.push(formattedText);
+            }
+
+            const formattedLongText = this.factoryNotionContent(blockType, longText.join(''), depth);
+
+            result.set(pageId, {
+              ...result.get(pageId),
+              content: `${result.get(pageId).content}${formattedLongText}\n`,
+            });
+          }
+
+          if (hasChildren) await this.getAllNotionDocuments(block.id, pageId, result, depth + 1);
+        }
       }
     }
 
-    sentences.filter(Boolean);
-
-    return sentences;
+    return result;
   }
 
-  async getPageMetadata(pageId: string) {
-    const page = await this.notion.pages.retrieve({
-      page_id: pageId,
-    });
+  factoryNotionContent(type: BlockObjectResponse['type'], content: string, depth: number = 0) {
+    const prefix = ' '.repeat(depth * 2);
 
-    return page;
+    switch (type) {
+      case 'heading_1':
+        return `${prefix}# ${content}`;
+      case 'heading_2':
+        return `${prefix}## ${content}`;
+      case 'heading_3':
+        return `${prefix}### ${content}`;
+      case 'paragraph':
+        return `${prefix}${content}`;
+      case 'bulleted_list_item':
+        return `${prefix}- ${content}`;
+      case 'numbered_list_item':
+        return `${prefix}- ${content}`;
+      case 'callout':
+        return `${prefix}> ${content}`;
+      case 'quote':
+        return `${prefix}> ${content}`;
+      case 'code':
+        return `
+${prefix}\`\`\`
+${prefix}${content}
+${prefix}\`\`\`
+`;
+      case 'image':
+        return `${prefix}![${content}]`;
+      default:
+        return content;
+    }
   }
 
-  async getPageBlocks(pageId: string) {
-    const blocks = await this.notion.blocks.children.list({
-      block_id: pageId,
-    });
+  factoryTextAnnotation(annotation: RichTextAnnotation, text: string) {
+    let result = text;
 
-    return blocks;
+    if (annotation.bold) result = `**${result}**`;
+    if (annotation.italic) result = `*${result}*`;
+    if (annotation.strikethrough) result = `~${result}~`;
+    if (annotation.underline) result = `_${result}_`;
+    if (annotation.code) result = `\`${result}\``;
+
+    return result;
   }
 }

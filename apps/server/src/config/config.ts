@@ -1,17 +1,4 @@
 export class Config {
-  public static readonly WEAVIATE = {
-    COLLECTIONS: {
-      // 노션 문서 데이터를 저장하는 컬렉션 이름입니다.
-      SENTENCES: 'NotionSentences',
-    },
-    VECTORIZER: {
-      // 사용할 임베딩 모델입니다.
-      MODEL: 'text-embedding-3-small',
-      // 임베딩 시 생성 되는 벡터의 차원 수입니다.
-      DIMENSIONS: 1536,
-    },
-  };
-
   public static readonly OPENAI = {
     SUMMARY: {
       MODEL: 'gpt-4o-mini',

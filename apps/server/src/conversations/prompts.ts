@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
-import { Sentence } from 'src/notion/notion.type';
+import { SearchedNotionDocument } from 'src/notion/notion.type';
 
 export const searchNotionByQuestionPromptFactory = (
   question: string,
-  sentences: Sentence[],
+  documents: SearchedNotionDocument[],
   messages?: Conversation['messages'],
 ): OpenAI.Chat.Completions.ChatCompletionMessageParam[] => {
   const systemPrompt = `You are a helpful and knowledgeable assistant for Notion Search Agent documentation.
@@ -63,14 +63,16 @@ export const searchNotionByQuestionPromptFactory = (
     }
   }
 
-  sentences.forEach((sentence) => {
+  documents.forEach((document) => {
     prompt.push({
       role: 'system',
       content: [
-        `Block ID: ${sentence.blockId}`,
-        `Value: ${sentence.value}`,
-        `Type: ${sentence.type}`,
-        `Language: ${sentence.language}`,
+        ,
+        `Title: ${document.title}`,
+        `Content: ${document.content}`,
+        `Document URL: ${document.documentUrl}`,
+        `Created At: ${document.createdAt}`,
+        `Updated At: ${document.updatedAt}`,
       ].join('\n'),
     });
   });

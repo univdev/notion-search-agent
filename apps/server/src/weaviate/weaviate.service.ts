@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Config } from 'src/config/config';
-import weaviate, { vectors, WeaviateClient } from 'weaviate-client';
+import weaviate, { WeaviateClient } from 'weaviate-client';
 
 @Injectable()
 export class WeaviateService {
@@ -18,24 +17,6 @@ export class WeaviateService {
       })
       .then((client) => {
         this.client = client;
-
-        this.client.collections.exists(Config.WEAVIATE.COLLECTIONS.SENTENCES).then((isExist) => {
-          if (isExist === false) {
-            this.client.collections.create({
-              name: Config.WEAVIATE.COLLECTIONS.SENTENCES,
-              properties: [
-                { name: 'blockId', dataType: 'text' },
-                { name: 'value', dataType: 'text' },
-                { name: 'type', dataType: 'text' },
-                { name: 'language', dataType: 'text' },
-              ],
-              vectorizers: vectors.text2VecOpenAI({
-                model: Config.WEAVIATE.VECTORIZER.MODEL,
-                dimensions: Config.WEAVIATE.VECTORIZER.DIMENSIONS,
-              }),
-            });
-          }
-        });
       });
   }
 

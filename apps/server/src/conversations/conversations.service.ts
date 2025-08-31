@@ -3,9 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import { Model } from 'mongoose';
 import OpenAI from 'openai';
-import { Config } from 'src/config/config';
+import { KnowledgesService } from 'src/knowledges/knowledges.service';
 import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
-import { Sentence } from 'src/notion/notion.type';
+import { SearchedNotionDocument } from 'src/notion/notion.type';
 import { OpenaiService } from 'src/openai/openai.service';
 import streamFactory from 'src/stream/factory/StreamFactory';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
@@ -14,11 +14,15 @@ import { searchNotionByQuestionPromptFactory, SUMMARY_PROMPT } from './prompts';
 
 @Injectable()
 export class ConversationsService {
-  private readonly openai: OpenAI;
+  public readonly openai: OpenAI;
+  public readonly OPENAI_QUESTION_MODEL = 'gpt-4o-mini';
+  public readonly OPENAI_SUMMARY_MODEL = 'gpt-4o-mini';
+  public readonly WEAVIATE_SEARCH_LIMIT = 10;
 
   constructor(
     private readonly weaviateService: WeaviateService,
     private readonly openAIService: OpenaiService,
+    private readonly knowledgesService: KnowledgesService,
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<Conversation>,
   ) {
@@ -33,8 +37,8 @@ export class ConversationsService {
       messages: [],
     });
 
-    const sentences = await this.getSentencesByQuestion(question);
-    const stream = await this.getAssistantMessageStream(question, sentences, []);
+    const documents = await this.getDocumentsByQuestion(question);
+    const stream = await this.getAssistantMessageStream(question, documents, []);
 
     response.write(
       streamFactory('data', {
@@ -88,7 +92,7 @@ export class ConversationsService {
 
     const MESSAGE_LIMIT = 10;
     const messages = conversation.messages.slice(MESSAGE_LIMIT * -1);
-    const sentences = await this.getSentencesByQuestion(question);
+    const sentences = await this.getDocumentsByQuestion(question);
     const stream = await this.getAssistantMessageStream(question, sentences, messages);
 
     let assistantMessage = '';
@@ -124,9 +128,13 @@ export class ConversationsService {
     response.end();
   }
 
-  private async getAssistantMessageStream(question: string, sentences: Sentence[], messages: Conversation['messages']) {
+  private async getAssistantMessageStream(
+    question: string,
+    sentences: SearchedNotionDocument[],
+    messages: Conversation['messages'],
+  ) {
     const stream = await this.openai.chat.completions.create({
-      model: Config.OPENAI.QUESTION.MODEL,
+      model: this.OPENAI_QUESTION_MODEL,
       messages: searchNotionByQuestionPromptFactory(question, sentences, messages),
       stream: true,
     });
@@ -136,7 +144,7 @@ export class ConversationsService {
 
   private async createSummary(userMessage: string, assistantMessage: string) {
     const summary = await this.openai.chat.completions.create({
-      model: Config.OPENAI.SUMMARY.MODEL,
+      model: this.OPENAI_SUMMARY_MODEL,
       messages: [
         { role: 'system', content: SUMMARY_PROMPT },
         { role: 'user', content: userMessage },
@@ -147,25 +155,26 @@ export class ConversationsService {
     return summary.choices[0]?.message?.content;
   }
 
-  async getSentencesByQuestion(question: string) {
-    const store = this.weaviateService.getInstance();
-    const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
+  async getDocumentsByQuestion(question: string) {
+    const collection = await this.knowledgesService.getNotionDocumentCollection();
 
     const items = await collection.query.nearText(question, {
-      limit: Config.NOTION_SENTENCES.SEARCH_LIMIT,
+      limit: this.WEAVIATE_SEARCH_LIMIT,
       returnMetadata: ['distance'],
     });
 
-    const sentences = items.objects.map((sentence) => {
+    const documents = items.objects.map((document) => {
       return {
-        blockId: sentence.properties.id,
-        value: sentence.properties.value,
-        type: sentence.properties.type,
-        language: sentence.properties.language,
+        pageId: document.properties.pageId,
+        title: document.properties.title,
+        content: document.properties.content,
+        documentUrl: document.properties.documentUrl,
+        createdAt: document.properties.createdAt,
+        updatedAt: document.properties.updatedAt,
       };
-    }) as Sentence[];
+    }) as SearchedNotionDocument[];
 
-    return sentences;
+    return documents;
   }
 
   async getConversations(offset: number, limit: number) {

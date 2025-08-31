@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
@@ -7,14 +7,18 @@ import { Config } from 'src/config/config';
 import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 import { NotionService } from 'src/notion/notion.service';
-import { PatchNotionSyncPayload } from 'src/notion/notion.type';
 import { RedisService } from 'src/redis/redis.service';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
-
-import { Sentence } from './knowledges.type';
+import { vectors } from 'weaviate-client';
 
 @Injectable()
 export class KnowledgesService {
+  private readonly NOTION_DOCUMENT_COLLECTION_NAME = 'NotionDocuments';
+  private readonly EMBEDDING_MODEL = 'text-embedding-3-small';
+  private readonly EMBEDDING_DIMENSIONS = 1536;
+
+  private readonly REDIS_SCHEDULE_KEY = 'knowledges:sync-notion-documents';
+
   constructor(
     private readonly configService: ConfigService,
     private readonly notionService: NotionService,
@@ -36,94 +40,91 @@ export class KnowledgesService {
     return true;
   }
 
-  async syncNotionDocuments(payload: PatchNotionSyncPayload) {
-    const REDIS_KEY = 'notion-syncing';
+  async createNotionDocumentCollection() {
+    const client = this.weaviateService.getInstance();
 
+    return client.collections.create({
+      name: this.NOTION_DOCUMENT_COLLECTION_NAME,
+      properties: [
+        { name: 'pageId', dataType: 'text' },
+        { name: 'title', dataType: 'text' },
+        { name: 'content', dataType: 'text' },
+        { name: 'documentUrl', dataType: 'text' },
+        { name: 'createdAt', dataType: 'date' },
+        { name: 'updatedAt', dataType: 'date' },
+      ],
+      vectorizers: vectors.text2VecOpenAI({
+        model: this.EMBEDDING_MODEL,
+        dimensions: this.EMBEDDING_DIMENSIONS,
+      }),
+    });
+  }
+
+  async hasNotionDocumentCollection() {
+    return this.weaviateService.getInstance().collections.exists(this.NOTION_DOCUMENT_COLLECTION_NAME);
+  }
+
+  async deleteNotionDocumentCollection() {
+    return this.weaviateService.getInstance().collections.delete(this.NOTION_DOCUMENT_COLLECTION_NAME);
+  }
+
+  async getNotionDocumentCollection() {
+    return this.weaviateService.getInstance().collections.use(this.NOTION_DOCUMENT_COLLECTION_NAME);
+  }
+
+  async syncNotionDocuments(senderIp: string) {
     try {
-      const isSyncing = await this.redisService.get(REDIS_KEY);
-
-      if (isSyncing) throw new BadRequestException(new HttpExceptionData('sync-notion-documents.already-syncing'));
-
-      await this.redisService.set(REDIS_KEY, 'true', 60 * 10);
-      const lastNotionSyncHistory = await this.notionInitializeHistoryModel
-        .findOne({
-          status: NotionSyncHistoryStatus.COMPLETED,
-        })
-        .sort({ createdAt: -1 });
-
-      if (
-        lastNotionSyncHistory &&
-        Date.now() - lastNotionSyncHistory.createdAt.getTime() < Config.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME
-      ) {
-        throw new BadRequestException(
-          new HttpExceptionData('sync-notion-documents.already-synced', {
-            cooldown: Config.NOTION_SENTENCES.SYNC_MAX_WAIT_TIME,
-          }),
-        );
+      const isExistCollection = await this.hasNotionDocumentCollection();
+      if (isExistCollection === false) await this.createNotionDocumentCollection();
+      else {
+        await this.deleteNotionDocumentCollection();
+        await this.createNotionDocumentCollection();
       }
 
-      await this.deleteAllSentenceFromVectorStore();
+      const isSyncing = await this.redisService.get(this.REDIS_SCHEDULE_KEY);
+      if (isSyncing === 'true')
+        throw new BadRequestException(new HttpExceptionData('sync-notion-documents.already-syncing'));
 
-      const notionSyncHistoryModel = await this.notionInitializeHistoryModel.create({
-        ip: payload.ip,
-        status: NotionSyncHistoryStatus.SYNCING,
+      await this.redisService.set(this.REDIS_SCHEDULE_KEY, 'true', 1000 * 60 * 10);
+
+      const collection = await this.getNotionDocumentCollection();
+      const documents = await this.notionService.getAllNotionDocuments(this.configService.get('NOTION_PAGE_ID'));
+      const data = [];
+
+      for (const key of documents.keys()) {
+        const document = documents.get(key);
+
+        data.push({
+          pageId: key,
+          title: document.title,
+          content: document.content,
+          documentUrl: document.documentUrl,
+          createdAt: new Date(document.createdAt),
+          updatedAt: new Date(document.updatedAt),
+        });
+      }
+
+      await collection.data.insertMany(data);
+      await this.redisService.del(this.REDIS_SCHEDULE_KEY);
+
+      await this.notionInitializeHistoryModel.create({
+        status: NotionSyncHistoryStatus.COMPLETED,
+        ip: senderIp,
+        totalPages: data.length,
+        completedAt: new Date(),
       });
 
-      const newNotionSyncHistory = await notionSyncHistoryModel.save();
-
-      try {
-        const startNotionPageId = this.configService.get('NOTION_PAGE_ID');
-
-        const blocks = await this.notionService.getPageBlocks(startNotionPageId);
-        const sentences = await this.notionService.getSentences(blocks);
-
-        await this.insertSentenceToVectorStore(sentences);
-
-        await this.notionInitializeHistoryModel.updateOne(
-          { _id: newNotionSyncHistory._id },
-          { status: NotionSyncHistoryStatus.COMPLETED },
-        );
-
-        return sentences;
-      } catch (error) {
-        await this.notionInitializeHistoryModel.updateOne(
-          { _id: newNotionSyncHistory._id },
-          { status: NotionSyncHistoryStatus.FAILED },
-        );
-
-        if (error instanceof HttpException) throw error;
-        throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.unknown-error'));
-      }
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-
-      throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.unknown-error'));
-    } finally {
-      await this.redisService.del(REDIS_KEY);
-    }
-  }
-
-  async insertSentenceToVectorStore(sentences: Sentence[]) {
-    try {
-      const store = this.weaviateService.getInstance();
-      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
-      await collection.data.insertMany(sentences);
-
-      return true;
-    } catch {
-      throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.failed-save-sentences'));
-    }
-  }
-
-  async deleteAllSentenceFromVectorStore() {
-    try {
-      const store = this.weaviateService.getInstance();
-      const collection = await store.collections.use(Config.WEAVIATE.COLLECTIONS.SENTENCES);
-      await collection.data.deleteMany(collection.filter.byProperty('blockId').like('*'));
-
       return true;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      await this.deleteNotionDocumentCollection();
+      await this.notionInitializeHistoryModel.create({
+        status: NotionSyncHistoryStatus.FAILED,
+        ip: senderIp,
+        totalPages: 0,
+        failedAt: new Date(),
+      });
+
+      throw error;
     }
   }
 }

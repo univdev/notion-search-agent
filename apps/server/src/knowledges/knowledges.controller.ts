@@ -7,9 +7,7 @@ export class KnowledgesController {
   constructor(private readonly knowledgesService: KnowledgesService) {}
 
   @Post('/notion/documents')
-  async syncNotionDocuments(@Ip() ip: string) {
-    return this.knowledgesService.syncNotionDocuments({
-      ip,
-    });
+  async syncNotionDocuments(@Ip() senderIp: string) {
+    return this.knowledgesService.syncNotionDocuments(senderIp);
   }
 }

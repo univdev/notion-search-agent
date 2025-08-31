@@ -13,5 +13,6 @@ import { KnowledgesService } from './knowledges.service';
   imports: [MongooseModule, NotionModule, RedisModule, WeaviateModule, ConfigModule],
   controllers: [KnowledgesController],
   providers: [KnowledgesService, ConfigService],
+  exports: [KnowledgesService],
 })
 export class KnowledgesModule {}

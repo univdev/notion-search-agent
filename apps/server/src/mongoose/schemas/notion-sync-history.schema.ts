@@ -36,19 +36,7 @@ export class NotionSyncHistory {
   failedAt: Date;
 
   @Prop({ default: 0 })
-  succeedPages: number;
-
-  @Prop({ default: 0 })
-  failedPages: number;
-
-  @Prop({ default: 0 })
   totalPages: number;
-
-  @Prop({ default: 0 })
-  usedTokens: number;
-
-  @Prop()
-  errorReason: string;
 }
 
 export const NotionSyncHistorySchema = SchemaFactory.createForClass(NotionSyncHistory);
