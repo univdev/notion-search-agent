@@ -3,12 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import { Model } from 'mongoose';
 import OpenAI from 'openai';
+import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { KnowledgesService } from 'src/knowledges/knowledges.service';
 import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
 import { SearchedNotionDocument } from 'src/notion/notion.type';
 import { OpenaiService } from 'src/openai/openai.service';
 import streamFactory from 'src/stream/factory/StreamFactory';
-import { WeaviateService } from 'src/weaviate/weaviate.service';
 
 import { searchNotionByQuestionPromptFactory, SUMMARY_PROMPT } from './prompts';
 
@@ -20,7 +20,6 @@ export class ConversationsService {
   public readonly WEAVIATE_SEARCH_LIMIT = 10;
 
   constructor(
-    private readonly weaviateService: WeaviateService,
     private readonly openAIService: OpenaiService,
     private readonly knowledgesService: KnowledgesService,
     @InjectModel(Conversation.name)
@@ -31,6 +30,10 @@ export class ConversationsService {
 
   async startNewConversation(response: Response, question: string, senderIp: string) {
     response.setHeader('Content-Type', 'text/event-stream');
+
+    if (await this.knowledgesService.checkScheduleSyncNotionDocuments()) {
+      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+    }
 
     const conversation = await this.conversationModel.create({
       summary: '',
@@ -85,6 +88,10 @@ export class ConversationsService {
 
   async continueQuestion(response: Response, question: string, conversationId: string, senderIp: string) {
     response.setHeader('Content-Type', 'text/event-stream');
+
+    if (await this.knowledgesService.checkScheduleSyncNotionDocuments()) {
+      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+    }
 
     const conversation = await this.conversationModel.findById(conversationId);
 

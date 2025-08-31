@@ -73,6 +73,18 @@ export class KnowledgesService {
     return this.weaviateService.getInstance().collections.use(this.NOTION_DOCUMENT_COLLECTION_NAME);
   }
 
+  async addScheduleSyncNotionDocuments() {
+    return this.redisService.set(this.REDIS_SCHEDULE_KEY, 'true', 1000 * 60 * 10);
+  }
+
+  async checkScheduleSyncNotionDocuments() {
+    return this.redisService.get(this.REDIS_SCHEDULE_KEY);
+  }
+
+  async removeScheduleSyncNotionDocuments() {
+    return this.redisService.del(this.REDIS_SCHEDULE_KEY);
+  }
+
   async syncNotionDocuments(senderIp: string) {
     try {
       const isExistCollection = await this.hasNotionDocumentCollection();
@@ -82,11 +94,11 @@ export class KnowledgesService {
         await this.createNotionDocumentCollection();
       }
 
-      const isSyncing = await this.redisService.get(this.REDIS_SCHEDULE_KEY);
+      const isSyncing = await this.checkScheduleSyncNotionDocuments();
       if (isSyncing === 'true')
         throw new BadRequestException(new HttpExceptionData('sync-notion-documents.already-syncing'));
 
-      await this.redisService.set(this.REDIS_SCHEDULE_KEY, 'true', 1000 * 60 * 10);
+      await this.addScheduleSyncNotionDocuments();
 
       const collection = await this.getNotionDocumentCollection();
       const documents = await this.notionService.getAllNotionDocuments(this.configService.get('NOTION_PAGE_ID'));
@@ -106,7 +118,7 @@ export class KnowledgesService {
       }
 
       await collection.data.insertMany(data);
-      await this.redisService.del(this.REDIS_SCHEDULE_KEY);
+      await this.removeScheduleSyncNotionDocuments();
 
       await this.notionInitializeHistoryModel.create({
         status: NotionSyncHistoryStatus.COMPLETED,
