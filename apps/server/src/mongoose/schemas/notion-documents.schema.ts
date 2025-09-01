@@ -28,9 +28,6 @@ export class NotionDocument {
 
   @Prop({ required: true, default: new Date() })
   createdAt: Date;
-
-  @Prop({})
-  updatedAt: Date;
 }
 
 export const NotionDocumentSchema = SchemaFactory.createForClass(NotionDocument);

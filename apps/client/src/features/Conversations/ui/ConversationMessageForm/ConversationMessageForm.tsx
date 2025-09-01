@@ -6,10 +6,11 @@ export type ConversationMessageFormProps = {
 };
 
 export default function ConversationMessageForm({ onTyping }: ConversationMessageFormProps) {
-  const [handleSubmit] = useSendMessageStream();
+  const [handleSubmit, isPending] = useSendMessageStream();
 
   return (
     <ConversationForm
+      isLoading={isPending}
       onSubmit={(value) => {
         handleSubmit(value);
         onTyping?.(false);

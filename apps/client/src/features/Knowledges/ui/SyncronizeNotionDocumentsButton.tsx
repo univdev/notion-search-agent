@@ -1,4 +1,4 @@
-import SyncronizeButton from '@/entities/Notion/ui/SyncronizeButton/SyncronizeButton';
+import SyncronizeButton from '@/entities/NotionSyncronize/ui/SyncronizeButton/SyncronizeButton';
 import useSyncNotionDocuments from '../models/useSyncNotionDocuments';
 
 export default function SyncronizeNotionDocumentsButton() {

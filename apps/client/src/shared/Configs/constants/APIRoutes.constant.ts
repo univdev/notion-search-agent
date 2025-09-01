@@ -10,6 +10,9 @@ const API_ROUTES = {
   KNOWLEDGES: {
     SYNC_NOTION_DOCUMENTS: '/knowledges/notion/documents',
   },
+  SYNC_HISTORIES: {
+    NOTION: '/sync-histories/notion',
+  },
   NAVIGATION: {
     CONVERSATIONS: '/navigation/conversations',
   },

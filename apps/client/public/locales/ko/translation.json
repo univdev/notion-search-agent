@@ -75,5 +75,25 @@
         "already-syncing": "데이터를 학습하고 있어서 질문을 받을 수 없어요"
       }
     }
+  },
+  "sync-history": {
+    "created-at": {
+      "label": "생성일"
+    },
+    "documents": {
+      "id": "ID",
+      "title": "제목",
+      "url": "URL",
+      "created-at": "생성일",
+      "open-in-new-tab": "새 탭에서 열기",
+      "documents-caption": "{{count}}개의 문서가 동기화되었어요"
+    }
+  },
+  "common": {
+    "date": {
+      "year-month-day-hour-minute-second": "yyyy-MM-dd HH:mm:ss",
+      "year-month-day": "yyyy-MM-dd",
+      "hour-minute-second": "HH:mm:ss"
+    }
   }
 }

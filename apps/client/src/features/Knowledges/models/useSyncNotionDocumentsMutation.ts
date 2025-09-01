@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { syncNotionDatabase } from '@/entities/Notion/api/NotionAPI';
+import { syncNotionDatabase } from '@/entities/NotionSyncronize/models/NotionSyncronizeAPI';
 
 export default function useSyncNotionDocumentsMutation() {
   return useMutation({

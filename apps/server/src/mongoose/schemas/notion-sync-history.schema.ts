@@ -14,29 +14,17 @@ export enum NotionSyncHistoryStatus {
 export class NotionSyncHistory {
   _id: MongooseSchema.Types.ObjectId;
 
-  @Prop({ required: true, default: new Date() })
-  createdAt: Date;
-
-  @Prop()
-  updatedAt: Date;
-
   @Prop({ required: true })
   status: NotionSyncHistoryStatus;
 
   @Prop({ required: true })
   ip: string;
 
-  @Prop({ default: new Date() })
-  startedAt: Date;
-
-  @Prop()
-  completedAt: Date;
-
-  @Prop()
-  failedAt: Date;
-
   @Prop({ default: 0 })
   totalPages: number;
+
+  @Prop({ required: true, default: new Date() })
+  createdAt: Date;
 }
 
 export const NotionSyncHistorySchema = SchemaFactory.createForClass(NotionSyncHistory);

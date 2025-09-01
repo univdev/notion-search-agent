@@ -14,6 +14,8 @@ import { NavigationModule } from './navigation/navigation.module';
 import { NotionModule } from './notion/notion.module';
 import { OpenaiModule } from './openai/openai.module';
 import { RedisModule } from './redis/redis.module';
+import { SyncHistoriesController } from './sync-histories/sync-histories.controller';
+import { SyncHistoriesModule } from './sync-histories/sync-histories.module';
 import { WeaviateModule } from './weaviate/weaviate.module';
 
 @Module({
@@ -31,8 +33,9 @@ import { WeaviateModule } from './weaviate/weaviate.module';
     ConfigModule,
     KnowledgesModule,
     ConversationsModule,
+    SyncHistoriesModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, SyncHistoriesController],
   providers: [AppService],
 })
 export class AppModule {}
