@@ -1,6 +1,9 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+
+import { NOTION_SYNC_HISTORY_QUERY_KEY } from '@/entities/NotionSyncronize/models/NotionSyncHistoryQueryKey';
 
 import useSyncNotionDocumentsMutation from './useSyncNotionDocumentsMutation';
 
@@ -8,6 +11,7 @@ export default function useSyncNotionDocuments() {
   const { t: serverErrorT } = useTranslation('server-error');
   const { t: chatT } = useTranslation('conversation');
   const { mutateAsync: syncNotionDocuments, isPending } = useSyncNotionDocumentsMutation();
+  const queryClient = useQueryClient();
 
   const handler = () => {
     syncNotionDocuments()
@@ -28,6 +32,9 @@ export default function useSyncNotionDocuments() {
         } else {
           toast.error(serverErrorT('sync-notion-documents.unknown-error'));
         }
+      })
+      .finally(() => {
+        queryClient.invalidateQueries({ queryKey: NOTION_SYNC_HISTORY_QUERY_KEY.all.queryKey });
       });
   };
 
