@@ -1,0 +1,33 @@
+name: notion-search-agent
+
+services:
+  weaviate:
+    image: semitechnologies/weaviate:stable-v1.31-c4ba202
+    ports:
+      - 8080:8080
+      - 50051:50051
+    env_file:
+      - ./weaviate.conf
+    volumes:
+      - weaviate_data:/data/db/weaviate
+
+  mongodb:
+    image: mongodb/mongodb-community-server:7.0.21-ubuntu2204
+    ports:
+      - 27017:27017
+    env_file:
+      - ./mongodb.conf
+    volumes:
+      - mongodb_data:/data/db/mongodb
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6377:6379
+    volumes:
+      - redis_data:/data/db/redis
+
+volumes:
+  weaviate_data:
+  mongodb_data:
+  redis_data:

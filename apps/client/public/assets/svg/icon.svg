@@ -1,0 +1,9 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>RAG Notion Search - Page + Focus Dot (Black)</title>
+  <!-- Page -->
+  <rect x="24" y="24" width="208" height="208" rx="36" fill="#0B0B0F"></rect>
+  <!-- Folded corner -->
+  <polygon points="192,24 232,64 232,24" fill="#111827"></polygon>
+  <!-- Focus dot -->
+  <circle cx="176" cy="176" r="28" fill="#FFFFFF"></circle>
+</svg>

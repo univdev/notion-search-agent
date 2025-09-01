@@ -5,7 +5,7 @@
   "license": "GPL-3.0",
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\"",
     "start": "nest start",
     "start:dev": "dotenv -e .env.development -- nest start --watch",
     "start:debug": "dotenv -e .env.development -- nest start --debug --watch",
@@ -18,13 +18,21 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/schedule": "^6.0.0",
+    "@nestjs/terminus": "^11.0.0",
     "@notionhq/client": "^4.0.1",
+    "ioredis": "^5.7.0",
+    "mongoose": "^8.17.1",
+    "openai": "^5.12.2",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "weaviate-client": "^3.8.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -48,7 +56,8 @@
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.1.3"
+    "typescript": "^5.1.3",
+    "@notion-search-agent/eslint": "workspace:*"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -66,8 +75,5 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
-  },
-  "peerDependencies": {
-    "@notion-search-agent/eslint": "workspace:*"
   }
 }

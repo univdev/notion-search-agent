@@ -1,6 +1,6 @@
 import eslint from '@notion-search-agent/eslint';
-import parser from '@typescript-eslint/parser';
 import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import parser from '@typescript-eslint/parser';
 
 export default [
   ...eslint,
@@ -15,7 +15,7 @@ export default [
       },
       globals: {
         node: true,
-        jest: true
+        jest: true,
       },
     },
     plugins: {
@@ -30,5 +30,5 @@ export default [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
     },
-  }
+  },
 ];

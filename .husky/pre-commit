@@ -1,0 +1,12 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit checks..."
+
+pnpm --filter @notion-search-agent/client lint --fix || exit 1
+pnpm --filter @notion-search-agent/client format || exit 1
+
+pnpm --filter @notion-search-agent/server lint --fix || exit 1
+pnpm --filter @notion-search-agent/server format || exit 1
+
+echo "✅ All checks passed"

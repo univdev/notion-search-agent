@@ -1,6 +1,6 @@
 {
   "name": "notion-search-agent",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Notion Search Agent",
   "author": {
     "name": "univdev",
@@ -11,11 +11,14 @@
   "packageManager": "pnpm@10.13.1",
   "scripts": {
     "c:dev": "turbo run dev -F=@notion-search-agent/client",
+    "c:tauri": "turbo run tauri -F=@notion-search-agent/client --",
     "c:build": "turbo run build -F=@notion-search-agent/client",
     "s:dev": "turbo run start:dev -F=@notion-search-agent/server",
-    "s:build": "turbo run build -F=@notion-search-agent/server"
+    "s:build": "turbo run build -F=@notion-search-agent/server",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "turbo": "^2.5.5"
   }
 }
