@@ -13,7 +13,6 @@ export type ConversationInputProps = {
   isLoading?: boolean;
   isValid?: boolean;
   onChange: (value: string) => void;
-  onCancel: () => void;
 } & ComponentProps<typeof Flex>;
 
 export default function ConversationInput({
@@ -22,7 +21,6 @@ export default function ConversationInput({
   isLoading = false,
   isValid = false,
   onChange,
-  onCancel,
   ...props
 }: ConversationInputProps) {
   const { t } = useTranslation('conversation');
@@ -45,22 +43,15 @@ export default function ConversationInput({
         onChange={(e) => onChange(e.currentTarget.value)}
       />
       <Flex className="w-full px-4 pt-2" justifyContent="flex-end">
-        {isLoading === false ? (
-          <Button className="rounded-4xl cursor-pointer" size="icon" aria-label={t('form.input.send')} type="submit">
-            <Send />
-          </Button>
-        ) : (
-          <Button
-            className={cn('rounded-4xl cursor-pointer disabled:cursor-default disabled:opacity-50')}
-            size="icon"
-            type="button"
-            aria-label={t('form.input.cancel')}
-            onClick={onCancel}
-            disabled={!isValid}
-          >
-            <StopCircle />
-          </Button>
-        )}
+        <Button
+          className="rounded-4xl cursor-pointer"
+          disabled={isLoading}
+          size="icon"
+          aria-label={t('form.input.send')}
+          type="submit"
+        >
+          <Send />
+        </Button>
       </Flex>
     </Flex>
   );

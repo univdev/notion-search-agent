@@ -12,15 +12,23 @@ import { Button } from '@/shared/Shadcn/ui/button';
 import Flex from '@/shared/App/ui/Flex/Flex';
 import { Link } from 'react-router';
 import ROUTES from '@/shared/Configs/constants/Routes.constant';
-import { getURLWithQuery } from '@/shared/App/utils/URL';
 import { useNavigationConversationsQuery } from '../../models/useNavigationChatHistoriesQuery';
 import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/Conversations/models/Conversations.constant';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
 import { Spinner } from '@/shared/Shadcn/ui/spinner';
+import { useEffect, useRef } from 'react';
 
 export default function ChatHistoriesGroup() {
   const { t } = useTranslation('sidebar');
-  const { data: chatNavigationHistories, isLoading, isError, refetch } = useNavigationConversationsQuery();
+  const {
+    data: chatNavigationHistories,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+  } = useNavigationConversationsQuery();
+  const histories = chatNavigationHistories?.flatMap((page) => page);
 
   return (
     <SidebarGroup>
@@ -28,25 +36,55 @@ export default function ChatHistoriesGroup() {
       <SidebarGroupContent>
         {(() => {
           if (isLoading === true) return <LoadingIndicator />;
-          else if (chatNavigationHistories?.data?.length === 0) return <NoChatHistories />;
+          else if (histories?.length === 0) return <NoChatHistories />;
           else if (isError === true) return <ErrorMessage onRetry={refetch} />;
           else
             return (
               <SidebarMenu>
-                {chatNavigationHistories?.data.map((item) => {
+                {histories?.map((item) => {
                   return <ChatHistoryItem key={item._id} itemId={item._id} summary={item.summary} />;
                 })}
               </SidebarMenu>
             );
         })()}
+        {hasNextPage && <LoadingIndicator onLoadMore={fetchNextPage} />}
       </SidebarGroupContent>
     </SidebarGroup>
   );
 }
 
-function LoadingIndicator() {
+export type LoadingIndicatorProps = {
+  onLoadMore?: () => void;
+};
+
+function LoadingIndicator({ onLoadMore }: LoadingIndicatorProps) {
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastItemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    observer.current = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          onLoadMore?.();
+        }
+      });
+    });
+
+    if (lastItemRef.current) observer.current.observe(lastItemRef.current);
+
+    return () => {
+      observer.current?.disconnect();
+    };
+  }, []);
+
   return (
-    <Flex className="w-full gap-y-1 py-1" alignItems="center" justifyContent="center" direction="column">
+    <Flex
+      ref={lastItemRef}
+      className="w-full gap-y-1 py-1"
+      alignItems="center"
+      justifyContent="center"
+      direction="column"
+    >
       <Spinner />
     </Flex>
   );

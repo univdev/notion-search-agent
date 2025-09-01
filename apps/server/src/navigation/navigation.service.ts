@@ -3,6 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Conversation } from 'src/mongoose/schemas/converstation.schema';
 
+import { GetConversationsParams } from './navigation.type';
+
 @Injectable()
 export class NavigationService {
   constructor(
@@ -10,7 +12,14 @@ export class NavigationService {
     private readonly conversationsModel: Model<Conversation>,
   ) {}
 
-  async getConversations() {
-    return this.conversationsModel.find().select('_id summary').sort({ createdAt: 'desc' });
+  async getConversations(params: GetConversationsParams) {
+    const items = await this.conversationsModel
+      .find()
+      .select('_id summary')
+      .sort({ createdAt: 'desc' })
+      .skip(params.offset)
+      .limit(params.limit);
+
+    return items;
   }
 }

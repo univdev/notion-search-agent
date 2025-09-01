@@ -7,6 +7,7 @@ import { useShallow } from 'zustand/shallow';
 import { sendConversationMessageStream } from '@/entities/Conversations/api/ConversationAPI';
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
 import { CONVERSATION_QUERY_KEY } from '@/entities/Conversations/models/ConversationQueryKey';
+import { NAVIGATION_QUERY_KEY } from '@/entities/Navigation/models/NavigationQueryKey';
 
 import useStreamMessagesStore from './useStreamMessagesStore';
 
@@ -39,6 +40,9 @@ export default function useSendMessageStream() {
           });
           queryClient.invalidateQueries({
             queryKey: CONVERSATION_QUERY_KEY.detail(currentConversationId as string).queryKey,
+          });
+          queryClient.invalidateQueries({
+            queryKey: NAVIGATION_QUERY_KEY.conversations.queryKey,
           });
           clearMessage(currentConversationId as string);
         } else if (typeof data === 'object' && 'conversationId' in data) {
