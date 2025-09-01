@@ -4,11 +4,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { NotionDocument } from 'src/mongoose/schemas/notion-documents.schema';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 import { NotionService } from 'src/notion/notion.service';
 import { RedisService } from 'src/redis/redis.service';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
 import { vectors } from 'weaviate-client';
+
+import { AddNotionDocumentPayload, ExportedNotionDocument } from './knowledges.types';
 
 @Injectable()
 export class KnowledgesService {
@@ -25,6 +28,7 @@ export class KnowledgesService {
     private readonly notionService: NotionService,
     private readonly weaviateService: WeaviateService,
     @InjectModel(NotionSyncHistory.name) private readonly notionInitializeHistoryModel: Model<NotionSyncHistory>,
+    @InjectModel(NotionDocument.name) private readonly notionDocumentModel: Model<NotionDocument>,
     private readonly redisService: RedisService,
   ) {}
 
@@ -102,7 +106,7 @@ export class KnowledgesService {
 
       const collection = await this.getNotionDocumentCollection();
       const documents = await this.notionService.getAllNotionDocuments(this.configService.get('NOTION_PAGE_ID'));
-      const data = [];
+      const data: ExportedNotionDocument[] = [];
 
       for (const key of documents.keys()) {
         const document = documents.get(key);
@@ -120,12 +124,25 @@ export class KnowledgesService {
       await collection.data.insertMany(data);
       await this.removeScheduleSyncNotionDocuments();
 
-      await this.notionInitializeHistoryModel.create({
+      const createdHistory = await this.notionInitializeHistoryModel.create({
         status: NotionSyncHistoryStatus.COMPLETED,
         ip: senderIp,
         totalPages: data.length,
         completedAt: new Date(),
       });
+
+      await Promise.all(
+        data.map((item) =>
+          this.addNotionDocument({
+            title: item.title,
+            content: item.content,
+            url: item.documentUrl,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+            historyId: createdHistory._id.toString(),
+          }),
+        ),
+      );
 
       return true;
     } catch (error) {
@@ -138,6 +155,19 @@ export class KnowledgesService {
       });
 
       throw error;
+    } finally {
+      await this.removeScheduleSyncNotionDocuments();
     }
+  }
+
+  async addNotionDocument(payload: AddNotionDocumentPayload) {
+    return this.notionDocumentModel.create({
+      title: payload.title,
+      content: payload.content,
+      url: payload.url,
+      documentCreatedAt: payload.createdAt,
+      documentUpdatedAt: payload.updatedAt,
+      historyId: payload.historyId,
+    });
   }
 }

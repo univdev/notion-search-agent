@@ -21,9 +21,15 @@ export class NotionDocument {
   historyId: MongooseSchema.Types.ObjectId;
 
   @Prop({ required: true })
-  createdAt: Date;
+  documentCreatedAt: Date;
 
   @Prop({ required: true })
+  documentUpdatedAt: Date;
+
+  @Prop({ required: true, default: new Date() })
+  createdAt: Date;
+
+  @Prop({})
   updatedAt: Date;
 }
 

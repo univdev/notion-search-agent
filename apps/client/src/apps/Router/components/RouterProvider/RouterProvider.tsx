@@ -1,6 +1,7 @@
 import ConversationDetailPage from '@/pages/Conversation/ConversationDetailPage';
 import ConversationStartPage from '@/pages/Conversation/ConversationStartPage';
 import Error404 from '@/pages/Error/Error404';
+import HistoryListPage from '@/pages/Histories/HistoryListPage';
 import ROUTES from '@/shared/Configs/constants/Routes.constant';
 import { createBrowserRouter, RouterProvider as ReactRouterProvider } from 'react-router';
 
@@ -19,7 +20,7 @@ export const router = createBrowserRouter([
   },
   {
     path: ROUTES.SYNC_HISTORIES.NOTION,
-    element: null,
+    element: <HistoryListPage />,
   },
   {
     path: '*',
