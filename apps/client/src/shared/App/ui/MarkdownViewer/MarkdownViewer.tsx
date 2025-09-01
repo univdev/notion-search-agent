@@ -13,6 +13,11 @@ export default function MarkdownViewer({ children, components, ...props }: Markd
       components={{
         p: ({ children }) => <p className="text-[12px] lg:text-[16px] md:text-[14px]">{children}</p>,
         hr: () => <hr className="my-4" />,
+        a: ({ children, href }) => (
+          <a target="_blank" href={href} className="text-blue-500">
+            {children}
+          </a>
+        ),
         code: ({ children, className }) => {
           const language = className?.split('language-')[1];
           if (!language) {
