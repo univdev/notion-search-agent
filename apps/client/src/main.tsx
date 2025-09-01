@@ -6,6 +6,7 @@ import { initReactI18next } from 'react-i18next';
 import './tailwind.css';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import ko from '../public/locales/ko/translation.json';
+import en from '../public/locales/en/translation.json';
 import { LOCALES, SUPPORT_LOCALES } from './shared/Configs/constants/Locales.constant';
 
 i18n.use(initReactI18next).init({
@@ -13,6 +14,7 @@ i18n.use(initReactI18next).init({
   fallbackLng: LOCALES.fallbackLng,
   resources: {
     [SUPPORT_LOCALES.ko]: ko,
+    [SUPPORT_LOCALES.en]: en,
   },
   interpolation: {
     escapeValue: false,

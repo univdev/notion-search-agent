@@ -1,5 +1,6 @@
 export const SUPPORT_LOCALES = {
   ko: 'ko',
+  en: 'en',
 } as const;
 
 export const LOCALES = {
