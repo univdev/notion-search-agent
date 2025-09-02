@@ -36,4 +36,4 @@ export default function ConversationRoom() {
   );
 }
 
-const ScrollToBottomButtonMotion = motion(ScrollToBottomButton);
+const ScrollToBottomButtonMotion = motion.create(ScrollToBottomButton);
