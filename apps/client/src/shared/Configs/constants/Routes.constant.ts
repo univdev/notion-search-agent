@@ -1,4 +1,5 @@
 const ROUTES = {
+  HOME: '/',
   CONVERSATIONS: {
     HOME: '/',
     DETAIL: '/conversations/:conversationId',

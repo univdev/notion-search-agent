@@ -3,7 +3,7 @@ import { NOTION_SYNC_HISTORY_STATUS } from '../../models/NotionSyncronizeAPI';
 import { cn } from '@/shared/Shadcn/utils';
 import { Badge } from '@/shared/Shadcn/ui/badge';
 import { Trans, useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+import { format } from 'date-fns/format';
 import { Calendar } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/shared/Shadcn/ui/table';
