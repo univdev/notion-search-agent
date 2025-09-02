@@ -7,7 +7,7 @@ services:
       - 8080:8080
       - 50051:50051
     env_file:
-      - ./weaviate.conf
+      - ./weaviate.env
     volumes:
       - weaviate_data:/data/db/weaviate
 
@@ -16,7 +16,7 @@ services:
     ports:
       - 27017:27017
     env_file:
-      - ./mongodb.conf
+      - ./mongodb.env
     volumes:
       - mongodb_data:/data/db/mongodb
 
