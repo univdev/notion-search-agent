@@ -1,5 +1,4 @@
 import ReactQueryProvider from './apps/ReactQuery/components/ReactQueryProvider/ReactQueryProvider';
-import ErrorBoundary from './apps/Router/components/ErrorBoundary/ErrorBoundary';
 import RouterProvider from './apps/Router/components/RouterProvider/RouterProvider';
 import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
@@ -8,13 +7,11 @@ import ServerErrorDetector from './features/Health/components/ServerErrorDetecto
 export default function App() {
   return (
     <ShadcnProvider>
-      <ErrorBoundary>
-        <ReactQueryProvider>
-          <ServerErrorDetector>
-            <RouterProvider />
-          </ServerErrorDetector>
-        </ReactQueryProvider>
-      </ErrorBoundary>
+      <ReactQueryProvider>
+        <ServerErrorDetector>
+          <RouterProvider />
+        </ServerErrorDetector>
+      </ReactQueryProvider>
       <Toaster />
     </ShadcnProvider>
   );
