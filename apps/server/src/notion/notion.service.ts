@@ -1,7 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
-import { BlockObjectResponse, Client } from '@notionhq/client';
+import { BlockObjectResponse, Client, ListBlockChildrenResponse } from '@notionhq/client';
+import { ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { Model } from 'mongoose';
 import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
@@ -80,8 +81,17 @@ export class NotionService {
   ) {
     const pageId = parentPageId || blockId;
     const result: Map<string, SearchedNotionDocument> = previousResult;
-    const document = await this.getNotionDocument(blockId);
-    const metadata = await this.getNotionMetadata(pageId);
+
+    let document: ListBlockChildrenResponse;
+    let metadata: NotionMetadata;
+
+    try {
+      document = await this.getNotionDocument(blockId);
+      metadata = await this.getNotionMetadata(pageId);
+    } catch (error) {
+      console.log(error);
+      return result;
+    }
     const contentPropertyKeys = [
       'heading_1',
       'heading_2',
@@ -124,7 +134,18 @@ export class NotionService {
         if (contentPropertyKey in block) {
           const richText = block[contentPropertyKey].rich_text ?? [];
 
-          if (Array.isArray(richText)) {
+          if (blockType === 'image') {
+            const imageBlock = block as ImageBlockObjectResponse;
+            if (imageBlock.image.type === 'file') {
+              const url = imageBlock.image.file.url;
+              const markdownImage = this.factoryNotionContent(blockType, url, depth);
+
+              result.set(pageId, {
+                ...result.get(pageId),
+                content: `${result.get(pageId).content}${markdownImage}\n`,
+              });
+            }
+          } else if (Array.isArray(richText)) {
             const longText = [];
 
             for (const richTextItem of richText) {
@@ -178,7 +199,7 @@ ${prefix}${content}
 ${prefix}\`\`\`
 `;
       case 'image':
-        return `${prefix}![${content}]`;
+        return `${prefix}![](${content})`;
       default:
         return content;
     }
