@@ -16,6 +16,39 @@
 - ✅ Docker를 이용한 간편한 환경 구축
 - ✅ GPT 4o 기반 인간친화적 제안
 
+## ▶️ 사용 방법
+
+### 사전 작업
+
+1. `apps/server`와 `apps/client` 내부에는 `.env.development.example` 파일이 존재합니다.  
+   해당 파일의 `.example` 을 제거하여 `.env.development` 처럼 만들어주셔야 서버가 인식합니다.
+2. `server/env.development.example` 파일 내부에는 **반드시 채워야 하는 값**이 존재합니다.
+   API Key를 각 플랫폼에서 발급받아 해당 필드를 채워주셔야 서버가 정상적으로 동작합니다.
+
+### 클라이언트
+
+```sh
+pnpm install # 의존성 설치
+
+pnpm c:tauri dev # Tauri로 데스크탑 어플리케이션을 개발 모드로 켜기
+# or
+pnpm c:dev # Tauri 없이 웹으로만 켜기
+```
+
+위 방법으로 웹 서버를 켜고 `http://localhost:1420` 으로 접속하실 수 있습니다.
+
+### 서버
+
+```sh
+pnpm install
+
+cd apps/server && docker compose up -d # Weaviate, MongoDB, Redis 켜기
+
+cd ../../ && pnpm s:dev # 루트에서 해당 명령어 실행
+```
+
+위 방법으로 API 서버를 켜면 `3000`번 포트로 동작합니다.
+
 ## ❓ 어떻게 동작하나요?
 
 Notion SDK를 사용하여 조직 혹은 개인의 문서에 접근합니다.  
