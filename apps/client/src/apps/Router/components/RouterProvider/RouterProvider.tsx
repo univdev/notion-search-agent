@@ -17,9 +17,7 @@ function RootElement() {
 export const router = createBrowserRouter([
   {
     path: ROUTES.HOME,
-    ErrorBoundary: (error) => {
-      if (isRouteErrorResponse(error)) console.log(error);
-
+    ErrorBoundary: () => {
       return <Error500 />;
     },
     element: <RootElement />,
