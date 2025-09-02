@@ -1,0 +1,21 @@
+@theme custom-theme {
+  --font-pretendard:
+    Pretendard, Roboto, 'Noto Sans KR', 'Segoe UI', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-pretendard);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+@layer components {
+  :root {
+    --conversation-header-height: 60px;
+  }
+}

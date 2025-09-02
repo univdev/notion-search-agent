@@ -141,3 +141,13 @@ dist
 # Claude
 .claude/settings.json
 .mcp.json
+
+# Conf
+*.conf
+
+# Turbo
+.turbo
+
+# .DS_Store
+.DS_Store
+**/.DS_Store

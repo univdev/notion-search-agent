@@ -1,9 +1,7 @@
 import unusedImports from "eslint-plugin-unused-imports";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
-import prettierPlugin from "eslint-plugin-prettier/recommended";
 
 export default [
-  prettierPlugin,
   {
     plugins: {
       "simple-import-sort": simpleImportSort,

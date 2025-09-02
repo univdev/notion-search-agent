@@ -1,0 +1,104 @@
+{
+  "sidebar": {
+    "navigation": {
+      "application": {
+        "label": "Application",
+        "chat": {
+          "label": "Chat"
+        },
+        "histories": {
+          "label": "Sync History"
+        }
+      },
+      "chat-histories": {
+        "label": "Chat History",
+        "error": {
+          "message": "Failed to load chat history. Please try again.",
+          "retry": "Try Again"
+        },
+        "no-chat-histories": {
+          "message": "No chat history found.<br />Please start a conversation."
+        }
+      }
+    }
+  },
+  "conversation": {
+    "sync-notion-documents-button": {
+      "label": "Sync",
+      "tooltip": "Sync Notion documents."
+    },
+    "sync-notion-documents-success": {
+      "message": "Notion documents have been synchronized."
+    },
+    "sync-notion-documents-error": {
+      "message": "Failed to sync Notion documents."
+    },
+    "start": {
+      "welcome": "Ask me anything you're curious about"
+    },
+    "form": {
+      "input": {
+        "send": "Send",
+        "cancel": "Cancel"
+      },
+      "button": "Start your first question"
+    },
+    "scroll-to-bottom": "Scroll to bottom"
+  },
+  "error": {
+    "404": {
+      "message": "Looks like you're lost.<br />Let's go back and find the right path.",
+      "goToHome": "Go Back"
+    },
+    "500": {
+      "message": "Something seems to be wrong.<br />Let's try refreshing the page.",
+      "retry": "Refresh"
+    },
+    "server-error": {
+      "health-check": {
+        "message": "Server is not responding...",
+        "retry": "Let's try again"
+      }
+    }
+  },
+  "server-error": {
+    "sync-notion-documents": {
+      "failed-connect-notion": "Failed to connect to Notion",
+      "already-syncing": "Sync request is currently being processed",
+      "unknown-error": "Notion sync failed due to unknown error",
+      "failed-save-sentences": "Failed to save Notion documents to vector store"
+    },
+    "conversation": {
+      "question": {
+        "question-required": "Please enter a question",
+        "unknown-error": "Unable to send question due to unknown error",
+        "already-syncing": "Cannot accept questions while learning data"
+      }
+    }
+  },
+  "sync-history": {
+    "error": {
+      "unknown-error": "Failed to load sync history due to unknown error",
+      "retry": "Try Again"
+    },
+    "no-data": "No sync history found",
+    "created-at": {
+      "label": "Created"
+    },
+    "documents": {
+      "id": "ID",
+      "title": "Title",
+      "url": "URL",
+      "created-at": "Created",
+      "open-in-new-tab": "Open in new tab",
+      "documents-caption": "{{count}} documents have been synchronized"
+    }
+  },
+  "common": {
+    "date": {
+      "year-month-day-hour-minute-second": "yyyy-MM-dd HH:mm:ss",
+      "year-month-day": "yyyy-MM-dd",
+      "hour-minute-second": "HH:mm:ss"
+    }
+  }
+}

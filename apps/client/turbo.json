@@ -5,8 +5,13 @@
       "cache": false,
       "persistent": true
     },
+    "tauri": {
+      "cache": false,
+      "persistent": true
+    },
     "build": {
-      "cache": true
+      "cache": true,
+      "outputs": ["dist/**"]
     }
   }
 }
