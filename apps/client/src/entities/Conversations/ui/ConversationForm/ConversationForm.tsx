@@ -54,13 +54,7 @@ export default function ConversationForm({
         control={form.control}
         name="message"
         render={({ field }) => (
-          <ConversationInput
-            isLoading={isLoading}
-            value={field.value}
-            onChange={field.onChange}
-            onCancel={() => {}}
-            isValid={form.formState.isValid}
-          />
+          <ConversationInput isLoading={isLoading} value={field.value} onChange={field.onChange} />
         )}
       />
     </Form>

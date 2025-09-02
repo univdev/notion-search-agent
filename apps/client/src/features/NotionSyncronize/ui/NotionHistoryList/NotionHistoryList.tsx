@@ -25,8 +25,6 @@ export default function NotionHistoryList() {
         <SyncronizeHistory
           key={item._id}
           status={item.status}
-          ip={item.ip}
-          totalPages={item.totalPages}
           createdAt={item.createdAt}
           documents={item.documents.map((document) => ({
             id: document._id,

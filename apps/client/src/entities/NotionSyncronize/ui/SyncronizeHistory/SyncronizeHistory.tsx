@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/shared/Shadcn/ui/card';
+import { Card, CardContent } from '@/shared/Shadcn/ui/card';
 import { NOTION_SYNC_HISTORY_STATUS } from '../../models/NotionSyncronizeAPI';
 import { cn } from '@/shared/Shadcn/utils';
 import { Badge } from '@/shared/Shadcn/ui/badge';
@@ -18,20 +18,11 @@ type NotionDocument = {
 export type SyncronizeHistoryProps = {
   className?: string;
   status: keyof typeof NOTION_SYNC_HISTORY_STATUS;
-  ip: string;
-  totalPages: number;
   createdAt: Date;
   documents: NotionDocument[];
 };
 
-export default function SyncronizeHistory({
-  className,
-  status,
-  ip,
-  totalPages,
-  createdAt,
-  documents,
-}: SyncronizeHistoryProps) {
+export default function SyncronizeHistory({ className, status, createdAt, documents }: SyncronizeHistoryProps) {
   const { t: commonT } = useTranslation('common');
   const { t: syncHistoryT } = useTranslation('sync-history');
 

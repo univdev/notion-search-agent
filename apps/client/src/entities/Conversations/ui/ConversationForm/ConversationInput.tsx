@@ -1,17 +1,15 @@
-import { Proportions, Send, StopCircle } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 import Flex from '@/shared/App/ui/Flex/Flex';
 import { Button } from '@/shared/Shadcn/ui/button';
-import { Input } from '@/shared/Shadcn/ui/input';
 import { cn } from '@/shared/Shadcn/utils';
 import { useTranslation } from 'react-i18next';
-import { ComponentProps, useEffect, useRef, useState } from 'react';
+import { ComponentProps, useRef } from 'react';
 import { Textarea } from '@/shared/Shadcn/ui/textarea';
 
 export type ConversationInputProps = {
   value?: string;
   isLoading?: boolean;
-  isValid?: boolean;
   onChange: (value: string) => void;
 } & ComponentProps<typeof Flex>;
 
@@ -19,7 +17,6 @@ export default function ConversationInput({
   className,
   value,
   isLoading = false,
-  isValid = false,
   onChange,
   ...props
 }: ConversationInputProps) {
