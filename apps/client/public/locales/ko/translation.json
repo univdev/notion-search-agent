@@ -77,6 +77,8 @@
     }
   },
   "sync-history": {
+    "show-documents": "동기화 된 문서 보기",
+    "hide-documents": "동기화 된 문서 숨기기",
     "error": {
       "unknown-error": "알 수 없는 이유로 동기화 이력을 불러오는데 실패했어요",
       "retry": "다시 시도"
@@ -85,7 +87,7 @@
     "created-at": {
       "label": "생성일"
     },
-    "documents": {
+    "document": {
       "id": "ID",
       "title": "제목",
       "url": "URL",

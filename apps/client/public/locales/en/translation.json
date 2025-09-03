@@ -52,7 +52,7 @@
     },
     "500": {
       "message": "Something seems to be wrong.<br />Let's try refreshing the page.",
-      "retry": "Refresh"
+      "goToHome": "Go to Home"
     },
     "server-error": {
       "health-check": {
@@ -77,6 +77,8 @@
     }
   },
   "sync-history": {
+    "show-documents": "Show synchronized documents",
+    "hide-documents": "Hide synchronized documents",
     "error": {
       "unknown-error": "Failed to load sync history due to unknown error",
       "retry": "Try Again"
@@ -85,7 +87,7 @@
     "created-at": {
       "label": "Created"
     },
-    "documents": {
+    "document": {
       "id": "ID",
       "title": "Title",
       "url": "URL",

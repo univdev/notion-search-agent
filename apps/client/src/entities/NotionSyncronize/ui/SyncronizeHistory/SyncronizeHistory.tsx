@@ -2,18 +2,18 @@ import { Card, CardContent } from '@/shared/Shadcn/ui/card';
 import { NOTION_SYNC_HISTORY_STATUS } from '../../models/NotionSyncronizeAPI';
 import { cn } from '@/shared/Shadcn/utils';
 import { Badge } from '@/shared/Shadcn/ui/badge';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns/format';
-import { Calendar } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/shared/Shadcn/ui/table';
+import { Accordion, AccordionItem } from '@/shared/Shadcn/ui/accordion';
+import { AccordionContent, AccordionTrigger } from '@radix-ui/react-accordion';
+import { Button } from '@/shared/Shadcn/ui/button';
+import { NotionDocument } from '../SavedDocumentsList/SavedDocumentsList';
+import { lazy, Suspense, useState } from 'react';
+import { Spinner } from '@/shared/Shadcn/ui/spinner';
 
-type NotionDocument = {
-  id: string;
-  title: string;
-  url: string;
-  createdAt: Date;
-};
+const SavedDocumentsList = lazy(() => import('../SavedDocumentsList/SavedDocumentsList'));
 
 export type SyncronizeHistoryProps = {
   className?: string;
@@ -25,10 +25,11 @@ export type SyncronizeHistoryProps = {
 export default function SyncronizeHistory({ className, status, createdAt, documents }: SyncronizeHistoryProps) {
   const { t: commonT } = useTranslation('common');
   const { t: syncHistoryT } = useTranslation('sync-history');
+  const [accordion, setAccordion] = useState('');
 
   return (
     <Card className={cn('syncronize-history', className)}>
-      <CardContent className="w-full flex flex-col gap-y-2">
+      <CardContent className="w-full flex flex-col gap-y-4">
         <div className="w-full flex items-center justify-between">
           <Badge
             className={cn(
@@ -51,33 +52,27 @@ export default function SyncronizeHistory({ className, status, createdAt, docume
           </Tooltip>
         </div>
         <div className="w-full flex items-center justify-between">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[200px]">{syncHistoryT('documents.id')}</TableHead>
-                <TableHead>{syncHistoryT('documents.title')}</TableHead>
-                <TableHead className="w-[200px]">{syncHistoryT('documents.url')}</TableHead>
-                <TableHead className="w-[100px]">{syncHistoryT('documents.created-at')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map((document) => (
-                <TableRow key={document.id}>
-                  <TableCell>{document.id}</TableCell>
-                  <TableCell>{document.title}</TableCell>
-                  <TableCell>
-                    <a href={document.url} target="_blank" rel="noopener noreferrer">
-                      {syncHistoryT('documents.open-in-new-tab')}
-                    </a>
-                  </TableCell>
-                  <TableCell>{format(document.createdAt, commonT('date.year-month-day-hour-minute-second'))}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-            <TableCaption>
-              <Trans t={syncHistoryT} i18nKey="documents.documents-caption" values={{ count: documents.length }} />
-            </TableCaption>
-          </Table>
+          <Accordion value={accordion} onValueChange={setAccordion} type="single" collapsible className="w-full">
+            <AccordionItem value="documents">
+              <AccordionTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full flex items-center gap-x-1 cursor-pointer">
+                  {accordion === 'documents' ? syncHistoryT('hide-documents') : syncHistoryT('show-documents')}
+                  <ArrowRight />
+                </Button>
+              </AccordionTrigger>
+              <AccordionContent className="w-full">
+                <Suspense
+                  fallback={
+                    <div className="w-full py-4 px-2 flex items-center justify-center">
+                      <Spinner />
+                    </div>
+                  }
+                >
+                  <SavedDocumentsList items={documents} />
+                </Suspense>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </CardContent>
     </Card>
