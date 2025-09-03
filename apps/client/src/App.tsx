@@ -3,8 +3,15 @@ import RouterProvider from './apps/Router/components/RouterProvider/RouterProvid
 import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
 import ServerErrorDetector from './features/Health/components/ServerErrorDetector/ServerErrorDetector';
+import { useEffect } from 'react';
 
 export default function App() {
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  }, []);
+
   return (
     <ShadcnProvider>
       <ReactQueryProvider>
