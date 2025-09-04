@@ -2,7 +2,12 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "cache": true
+      "cache": true,
+      "outputs": ["dist/**"],
+      "dependsOn": ["lint"]
+    },
+    "lint": {
+      "cache": false
     },
     "start:dev": {
       "cache": false,
