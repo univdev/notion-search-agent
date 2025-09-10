@@ -12,10 +12,10 @@ export type NotionDocument = {
 
 export type SavedDocumentsListProps = {
   className?: string;
-  items: NotionDocument[];
+  documents: NotionDocument[];
 };
 
-export default function SavedDocumentsList({ className, items }: SavedDocumentsListProps) {
+export default function SavedDocumentsList({ className, documents }: SavedDocumentsListProps) {
   const { t } = useTranslation('sync-history');
   const { t: commonT } = useTranslation('common');
 
@@ -30,7 +30,7 @@ export default function SavedDocumentsList({ className, items }: SavedDocumentsL
         </TableRow>
       </TableHeader>
       <TableBody>
-        {items.map((document) => (
+        {documents.map((document) => (
           <TableRow key={document.id}>
             <TableCell>{document.id}</TableCell>
             <TableCell>{document.title}</TableCell>
@@ -44,7 +44,7 @@ export default function SavedDocumentsList({ className, items }: SavedDocumentsL
         ))}
       </TableBody>
       <TableCaption>
-        <Trans t={t} i18nKey="document.documents-caption" values={{ count: items.length }} />
+        <Trans t={t} i18nKey="document.documents-caption" values={{ count: documents.length }} />
       </TableCaption>
     </Table>
   );

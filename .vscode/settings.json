@@ -10,5 +10,12 @@
   },
   "files.associations": {
     "*.css": "tailwindcss"
-  }
+  },
+  "i18n-ally.localesPaths": ["apps/client/src/shared/i18n"],
+  "i18n-ally.pathMatcher": "{locale}.translation.json",
+  "i18n-ally.sourceLanguage": "en",
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.sortKeys": true,
+  "i18n-ally.keepFulfilled": true,
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

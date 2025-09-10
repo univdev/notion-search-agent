@@ -5,9 +5,9 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import './tailwind.css';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
-import ko from '../public/locales/ko/translation.json';
-import en from '../public/locales/en/translation.json';
 import { LOCALES, SUPPORT_LOCALES } from './shared/i18n/Locales';
+import ko from './shared/i18n/ko.translation.json';
+import en from './shared/i18n/en.translation.json';
 
 i18n.use(initReactI18next).init({
   lng: LOCALES.lng,

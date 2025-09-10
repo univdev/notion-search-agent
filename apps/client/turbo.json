@@ -5,13 +5,17 @@
       "cache": false,
       "persistent": true
     },
+    "lint": {
+      "cache": false
+    },
     "tauri": {
       "cache": false,
       "persistent": true
     },
     "build": {
       "cache": true,
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "dependsOn": ["lint"]
     }
   }
 }

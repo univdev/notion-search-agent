@@ -68,7 +68,7 @@ export default function SyncronizeHistory({ className, status, createdAt, docume
                     </div>
                   }
                 >
-                  <SavedDocumentsList items={documents} />
+                  <SavedDocumentsList documents={documents} />
                 </Suspense>
               </AccordionContent>
             </AccordionItem>

@@ -7,7 +7,7 @@ import { Button } from '@/shared/shadcn-ui/button';
 
 export default function NotionHistoryList() {
   const {
-    data: notionSyncHistories,
+    data: notionSyncHistories = [],
     isSuccess,
     isLoading,
     isError,
@@ -15,13 +15,12 @@ export default function NotionHistoryList() {
     fetchNextPage,
     refetch,
   } = useNotionSyncHistoriesQuery();
-  const items = notionSyncHistories ?? [];
 
   return (
     <div className="flex flex-col w-full gap-y-4">
       {isLoading && <NotionHistoryListLoading />}
       {isError && <NotionHistoryListError onRetry={refetch} />}
-      {items.map((item) => (
+      {notionSyncHistories.map((item) => (
         <SyncronizeHistory
           key={item._id}
           status={item.status}
@@ -35,7 +34,7 @@ export default function NotionHistoryList() {
         />
       ))}
       {hasNextPage && <NotionHistoryListLoading onLoadMore={fetchNextPage} />}
-      {isSuccess && items.length === 0 && <NotionHistoryListEmpty />}
+      {isSuccess && notionSyncHistories.length === 0 && <NotionHistoryListEmpty />}
     </div>
   );
 }
