@@ -1,15 +1,15 @@
 import { match } from 'ts-pattern';
 import { useNavigate } from 'react-router';
 
-import { APP } from '@/shared/Configs/constants/App.constant';
-import { Sidebar, SidebarContent, SidebarHeader, SidebarProvider } from '@/shared/Shadcn/ui/sidebar';
+import { APP } from '@/shared/config/App.constant';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarProvider } from '@/shared/shadcn-ui/sidebar';
 import { NAVIGATION } from '@/widgets/Navigation/models/Navigation.constant';
 import ChatHistoriesGroup from '@/features/Navigation/ui/ConversationsNavigationGroup/ConversationsNavigationGroup';
 import { ReactNode } from 'react';
 import NormalNavigationGroup, {
   NormalNavigationGroupChild,
 } from '@/entities/Navigation/ui/NormalNavigationGroup/NormalNavigationGroup';
-import { cn } from '@/shared/Shadcn/utils';
+import { cn } from '@/shared/shadcn-utils';
 
 export type NavigationSidebarProps = {
   className?: string;

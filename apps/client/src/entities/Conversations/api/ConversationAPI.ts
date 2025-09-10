@@ -1,5 +1,5 @@
-import axiosInstance from '@/shared/App/helpers/AxiosInstance';
-import API_ROUTES from '@/shared/Configs/constants/APIRoutes.constant';
+import axiosInstance from '@/shared/api/AxiosInstance';
+import API_ROUTES from '@/shared/routes/APIRoutes';
 
 type Conversation = {
   _id: string;

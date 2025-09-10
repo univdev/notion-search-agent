@@ -5,7 +5,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/shared/Shadcn/ui/sidebar';
+} from '@/shared/shadcn-ui/sidebar';
 import { History, MessageSquareMore } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 

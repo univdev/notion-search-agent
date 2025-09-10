@@ -1,4 +1,4 @@
-import { Spinner } from '@/shared/Shadcn/ui/spinner';
+import { Spinner } from '@/shared/shadcn-ui/spinner';
 
 export default function ErrorPageFallback() {
   return (

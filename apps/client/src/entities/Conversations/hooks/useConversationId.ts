@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router';
 
-import ROUTES from '@/shared/Configs/constants/Routes.constant';
-import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/Conversations/models/Conversations.constant';
+import ROUTES from '@/shared/routes/Routes';
+import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/constants/Conversations.constant';
 
 export default function useConversationId() {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
-import NotionHistoryList from '@/features/NotionSyncronize/ui/NotionHistoryList/NotionHistoryList';
-import Container from '@/shared/App/ui/Container/Container';
+import NotionHistoryList from '@/features/NotionSyncHistoryList/ui/NotionHistoryList/NotionHistoryList';
+import Container from '@/shared/ui/Container/Container';
 import ConversationHeader from '@/widgets/Headers/ui/ConversationHeader/ConversationHeader';
 import NavigationSidebar from '@/widgets/Navigation/ui/NavigationSidebar/NavigationSidebar';
 

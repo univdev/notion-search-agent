@@ -1,4 +1,4 @@
-import ROUTES from '@/shared/Configs/constants/Routes.constant';
+import ROUTES from '@/shared/routes/Routes';
 
 export const NAVIGATION = [
   {
