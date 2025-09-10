@@ -1,7 +1,7 @@
 import { Controller, Form, useForm } from 'react-hook-form';
 
 import ConversationInput from './ConversationInput';
-import { cn } from '@/shared/Shadcn/utils';
+import { cn } from '@/shared/shadcn-utils';
 import { CONVERSATION_FORM_SCHEMA } from '../../models/ConversationFormSchema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';

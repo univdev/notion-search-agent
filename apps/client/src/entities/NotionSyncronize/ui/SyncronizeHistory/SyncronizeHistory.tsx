@@ -1,17 +1,17 @@
-import { Card, CardContent } from '@/shared/Shadcn/ui/card';
-import { NOTION_SYNC_HISTORY_STATUS } from '../../models/NotionSyncronizeAPI';
-import { cn } from '@/shared/Shadcn/utils';
-import { Badge } from '@/shared/Shadcn/ui/badge';
+import { Card, CardContent } from '@/shared/shadcn-ui/card';
+import { NOTION_SYNC_HISTORY_STATUS } from '../../api/NotionSyncronizeAPI';
+import { cn } from '@/shared/shadcn-utils';
+import { Badge } from '@/shared/shadcn-ui/badge';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns/format';
 import { ArrowRight, Calendar } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
-import { Accordion, AccordionItem } from '@/shared/Shadcn/ui/accordion';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
+import { Accordion, AccordionItem } from '@/shared/shadcn-ui/accordion';
 import { AccordionContent, AccordionTrigger } from '@radix-ui/react-accordion';
-import { Button } from '@/shared/Shadcn/ui/button';
+import { Button } from '@/shared/shadcn-ui/button';
 import { NotionDocument } from '../SavedDocumentsList/SavedDocumentsList';
 import { lazy, Suspense, useState } from 'react';
-import { Spinner } from '@/shared/Shadcn/ui/spinner';
+import { Spinner } from '@/shared/shadcn-ui/spinner';
 
 const SavedDocumentsList = lazy(() => import('../SavedDocumentsList/SavedDocumentsList'));
 

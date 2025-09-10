@@ -1,6 +1,6 @@
-import axiosInstance from '@/shared/App/helpers/AxiosInstance';
-import { ServerResponse } from '@/shared/App/types/Server.type';
-import API_ROUTES from '@/shared/Configs/constants/APIRoutes.constant';
+import axiosInstance from '@/shared/api/AxiosInstance';
+import { ServerResponse } from '@/shared/api/ServerResponseType';
+import API_ROUTES from '@/shared/routes/APIRoutes';
 
 type NavigationChatHistory = {
   _id: string;

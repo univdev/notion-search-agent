@@ -1,5 +1,5 @@
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/shared/Shadcn/ui/table';
-import { cn } from '@/shared/Shadcn/utils';
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/shared/shadcn-ui/table';
+import { cn } from '@/shared/shadcn-utils';
 import { format } from 'date-fns/format';
 import { Trans, useTranslation } from 'react-i18next';
 

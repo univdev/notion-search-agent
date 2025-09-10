@@ -1,8 +1,8 @@
-import Flex from '@/shared/App/ui/Flex/Flex';
-import { cn } from '@/shared/Shadcn/utils';
+import Flex from '@/shared/ui/Flex/Flex';
+import { cn } from '@/shared/shadcn-utils';
 import { ComponentProps } from 'react';
-import MarkdownViewer from '@/shared/App/ui/MarkdownViewer/MarkdownViewer';
-import { Spinner } from '@/shared/Shadcn/ui/spinner';
+import MarkdownViewer from '@/shared/ui/MarkdownViewer/MarkdownViewer';
+import { Spinner } from '@/shared/shadcn-ui/spinner';
 
 export const CHAT_MESSAGE_SENDER = {
   USER: 'user',

@@ -2,10 +2,10 @@ import { lazy, Suspense } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
-import ROUTES from '@/shared/Configs/constants/Routes.constant';
-import { Button } from '@/shared/Shadcn/ui/button';
-import { Skeleton } from '@/shared/Shadcn/ui/skeleton';
-import { AspectRatio } from '@/shared/Shadcn/ui/aspect-ratio';
+import ROUTES from '@/shared/routes/Routes';
+import { Button } from '@/shared/shadcn-ui/button';
+import { Skeleton } from '@/shared/shadcn-ui/skeleton';
+import { AspectRatio } from '@/shared/shadcn-ui/aspect-ratio';
 
 const DotLottieReact = lazy(() =>
   import('@lottiefiles/dotlottie-react').then((module) => ({ default: module.DotLottieReact })),

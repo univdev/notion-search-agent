@@ -1,8 +1,8 @@
-import ReactQueryProvider from './apps/ReactQuery/components/ReactQueryProvider/ReactQueryProvider';
-import RouterProvider from './apps/Router/components/RouterProvider/RouterProvider';
-import ShadcnProvider from './shared/Shadcn/components/ShadcnProvider/ShadcnProvider';
+import ReactQueryProvider from './apps/react-query/ReactQueryProvider';
+import RouterProvider from './apps/routes/RouterProvider';
+import ShadcnProvider from './shared/shadcn-components/ShadcnProvider/ShadcnProvider';
 import { Toaster } from 'sonner';
-import ServerErrorDetector from './features/Health/components/ServerErrorDetector/ServerErrorDetector';
+import ServerErrorDetector from './apps/server-health-checker/ServerErrorDetector';
 import { useEffect } from 'react';
 
 export default function App() {

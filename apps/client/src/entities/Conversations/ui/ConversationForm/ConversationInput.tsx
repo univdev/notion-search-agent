@@ -1,11 +1,11 @@
 import { Send } from 'lucide-react';
 
-import Flex from '@/shared/App/ui/Flex/Flex';
-import { Button } from '@/shared/Shadcn/ui/button';
-import { cn } from '@/shared/Shadcn/utils';
+import Flex from '@/shared/ui/Flex/Flex';
+import { Button } from '@/shared/shadcn-ui/button';
+import { cn } from '@/shared/shadcn-utils';
 import { useTranslation } from 'react-i18next';
 import { ComponentProps, useRef } from 'react';
-import { Textarea } from '@/shared/Shadcn/ui/textarea';
+import { Textarea } from '@/shared/shadcn-ui/textarea';
 
 export type ConversationInputProps = {
   value?: string;

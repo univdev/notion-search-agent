@@ -5,17 +5,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/shared/Shadcn/ui/sidebar';
+} from '@/shared/shadcn-ui/sidebar';
 import { MessageSquareMore } from 'lucide-react';
 import { Trans, useTranslation } from 'react-i18next';
-import { Button } from '@/shared/Shadcn/ui/button';
-import Flex from '@/shared/App/ui/Flex/Flex';
+import { Button } from '@/shared/shadcn-ui/button';
+import Flex from '@/shared/ui/Flex/Flex';
 import { Link } from 'react-router';
-import ROUTES from '@/shared/Configs/constants/Routes.constant';
-import { useNavigationConversationsQuery } from '../../models/useNavigationChatHistoriesQuery';
-import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/Conversations/models/Conversations.constant';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/Shadcn/ui/tooltip';
-import { Spinner } from '@/shared/Shadcn/ui/spinner';
+import ROUTES from '@/shared/routes/Routes';
+import { useNavigationConversationsQuery } from '../../api/useNavigationChatHistoriesQuery';
+import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/constants/Conversations.constant';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
+import { Spinner } from '@/shared/shadcn-ui/spinner';
 import { useEffect, useRef } from 'react';
 
 export default function ChatHistoriesGroup() {

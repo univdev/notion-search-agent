@@ -1,6 +1,6 @@
 import SyncronizeNotionDocumentsButton from '@/features/Knowledges/ui/SyncronizeNotionDocumentsButton';
-import { SidebarTrigger } from '@/shared/Shadcn/ui/sidebar';
-import { cn } from '@/shared/Shadcn/utils';
+import { SidebarTrigger } from '@/shared/shadcn-ui/sidebar';
+import { cn } from '@/shared/shadcn-utils';
 
 export type ConversationHeaderProps = {
   className?: string;
