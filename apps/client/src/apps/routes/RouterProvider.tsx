@@ -1,5 +1,5 @@
-import ConversationDetailPage from '@/pages/ConversationRoomPage/ui/RoomPage/ConversationDetailPage';
-import StartPage from '@/pages/ConversationStartPage/ui/StartPage/StartPage';
+import RoomPage from '@/pages/ConversationRoomPage/RoomPage';
+import StartPage from '@/pages/ConversationStartPage/StartPage';
 import HistoryListPage from '@/pages/NotionSyncHistories/HistoryListPage';
 import ROUTES from '@/shared/routes/Routes';
 import { createBrowserRouter, Outlet, RouterProvider as ReactRouterProvider } from 'react-router';
@@ -33,7 +33,7 @@ export const router = createBrowserRouter([
       },
       {
         path: ROUTES.CONVERSATIONS.DETAIL,
-        element: <ConversationDetailPage />,
+        element: <RoomPage />,
       },
       {
         path: ROUTES.SYNC_HISTORIES.NOTION,

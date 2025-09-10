@@ -3,7 +3,7 @@ import RoomSection from '@/pages/ConversationRoomPage/ui/RoomSection/RoomSection
 import ConversationHeader from '@/widgets/Headers/ui/ConversationHeader/ConversationHeader';
 import NavigationSidebar from '@/widgets/Navigation/ui/NavigationSidebar/NavigationSidebar';
 
-export default function ConversationDetailPage() {
+export default function RoomPage() {
   return (
     <NavigationSidebar>
       <div className="w-full flex flex-col relative">

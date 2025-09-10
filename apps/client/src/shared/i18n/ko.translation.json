@@ -100,7 +100,8 @@
     "date": {
       "year-month-day-hour-minute-second": "yyyy-MM-dd HH:mm:ss",
       "year-month-day": "yyyy-MM-dd",
-      "hour-minute-second": "HH:mm:ss"
+      "hour-minute-second": "HH:mm:ss",
+      "test": "테스트"
     }
   }
 }

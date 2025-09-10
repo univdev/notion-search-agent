@@ -12,11 +12,11 @@ import { Button } from '@/shared/shadcn-ui/button';
 import Flex from '@/shared/ui/Flex/Flex';
 import { Link } from 'react-router';
 import ROUTES from '@/shared/routes/Routes';
-import { useNavigationConversationsQuery } from '../../api/useNavigationChatHistoriesQuery';
 import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/constants/Conversations.constant';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
 import { Spinner } from '@/shared/shadcn-ui/spinner';
 import { useEffect, useRef } from 'react';
+import { useNavigationConversationsQuery } from '@/features/Navigation/api/useNavigationChatHistoriesQuery';
 
 export default function ChatHistoriesGroup() {
   const { t } = useTranslation('sidebar');
