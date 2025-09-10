@@ -6,6 +6,9 @@ import Flex from '@/shared/ui/Flex/Flex';
 import useConversationScroll from '../../hooks/useConversationScroll';
 import { cn } from '@/shared/shadcn-utils';
 import useStreamMessagesStore from '@/entities/Conversations/models/useStreamMessagesStore';
+import { Spinner } from '@/shared/shadcn-ui/spinner';
+import { Button } from '@/shared/shadcn-ui/button';
+import { useTranslation } from 'react-i18next';
 
 export type ChatMessageListProps = {
   className?: string;
@@ -19,7 +22,13 @@ export default function ChatMessageList({ className, isTyping = false }: ChatMes
 
   const streamMessages = useStreamMessagesStore(useShallow((state) => state.messages));
   const [userMessage, assistantMessageStream] = streamMessages[conversationId] ?? [];
-  const { data: conversation } = useConversationQuery(conversationId);
+  const {
+    data: conversation,
+    isLoading: isConversationLoading,
+    isError: isConversationError,
+    refetch: refetchConversation,
+  } = useConversationQuery(conversationId);
+
   const messages = conversation?.data.messages ?? [];
 
   useConversationScroll(messages, assistantMessageStream ?? '');
@@ -29,9 +38,15 @@ export default function ChatMessageList({ className, isTyping = false }: ChatMes
       className={cn('chat-message-list w-full gap-y-8 px-2 overflow-y-auto relative', className)}
       direction="column"
     >
-      {messages.map((message, index) => {
-        return <ChatMessage key={index} sender={message.role} message={message.content} />;
-      })}
+      {(() => {
+        if (isConversationLoading === true) return <ChatMessageLoading />;
+        else if (isConversationError === true) return <ChatMessageLoadError onRetry={refetchConversation} />;
+        else {
+          return messages.map((message, index) => {
+            return <ChatMessage key={index} sender={message.role} message={message.content} />;
+          });
+        }
+      })()}
       {isTyping && <ChatMessage sender={CHAT_MESSAGE_SENDER.USER} message="..." />}
       {userMessage !== undefined && <ChatMessage sender={CHAT_MESSAGE_SENDER.USER} message={userMessage} />}
       {assistantMessageStream !== undefined && (
@@ -40,3 +55,28 @@ export default function ChatMessageList({ className, isTyping = false }: ChatMes
     </Flex>
   );
 }
+
+const ChatMessageLoading = () => {
+  return (
+    <div className="flex flex-col gap-y-8 px-2 overflow-y-auto relative items-center">
+      <Spinner />
+    </div>
+  );
+};
+
+type ChatMessageLoadErrorProps = {
+  onRetry: () => void;
+};
+
+const ChatMessageLoadError = ({ onRetry }: ChatMessageLoadErrorProps) => {
+  const { t } = useTranslation('server-error');
+
+  return (
+    <div className="flex flex-col items-center gap-y-4">
+      <p>{t('conversation.list.load-failed')}</p>
+      <Button type="button" variant="default" onClick={onRetry}>
+        {t('conversation.list.retry')}
+      </Button>
+    </div>
+  );
+};

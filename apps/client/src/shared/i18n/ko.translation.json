@@ -69,6 +69,10 @@
       "failed-save-sentences": "노션 문서를 벡터 저장소에 저장하는데 실패했어요"
     },
     "conversation": {
+      "list": {
+        "load-failed": "대화 데이터를 불러오는데 실패했어요. 다시 시도해주세요.",
+        "retry": "다시 시도"
+      },
       "question": {
         "question-required": "질문을 입력해주세요",
         "unknown-error": "알 수 없는 이유로 질문을 보내지 못했어요",
@@ -100,7 +104,8 @@
     "date": {
       "year-month-day-hour-minute-second": "yyyy-MM-dd HH:mm:ss",
       "year-month-day": "yyyy-MM-dd",
-      "hour-minute-second": "HH:mm:ss"
+      "hour-minute-second": "HH:mm:ss",
+      "test": "테스트"
     }
   }
 }
