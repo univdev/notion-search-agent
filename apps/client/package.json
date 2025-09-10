@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build --mode production",
     "preview": "vite preview",
     "tauri": "tauri",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" \"vite.config.ts\" --fix",
@@ -47,6 +47,7 @@
     "tailwindcss": "^4.1.11",
     "ts-pattern": "^5.8.0",
     "vaul": "^1.1.2",
+    "web-vitals": "^5.1.0",
     "zod": "^4.1.0",
     "zustand": "^5.0.8"
   },
