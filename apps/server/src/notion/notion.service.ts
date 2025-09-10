@@ -88,8 +88,7 @@ export class NotionService {
     try {
       document = await this.getNotionDocument(blockId);
       metadata = await this.getNotionMetadata(pageId);
-    } catch (error) {
-      console.log(error);
+    } catch {
       return result;
     }
     const contentPropertyKeys = [
