@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 
-import { NOTION_SYNC_HISTORY_QUERY_KEY } from '@/shared/query-keys/NotionSyncHistoryQueryKey';
 import { getNotionSyncronizationHistories } from '@/entities/NotionSyncronize/api/NotionSyncronizeAPI';
+import { NOTION_SYNC_HISTORY_QUERY_KEY } from '@/shared/query-keys/NotionSyncHistoryQueryKey';
 
 export default function useNotionSyncHistoriesQuery() {
   const DEFAULT_LIMIT = 10;
