@@ -8,6 +8,7 @@ import { sendConversationMessageStream } from '@/entities/Conversations/api/Conv
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
 import { CONVERSATION_QUERY_KEY } from '@/shared/query-keys/ConversationQueryKey';
 import { NAVIGATION_QUERY_KEY } from '@/shared/query-keys/NavigationQueryKey';
+import exportStreamMessageObject from '@/shared/stream/ExportStreamMessageObject';
 
 import useStreamMessagesStore from '../models/useStreamMessagesStore';
 
@@ -88,34 +89,4 @@ export default function useSendMessageStream() {
   };
 
   return [handler, isPending] as const;
-}
-
-function exportStreamMessageObject(data: string): { event: string; data: Record<string, string> | string }[] {
-  const messages: { event: string; data: Record<string, string> | string }[] = data
-    .split('\n')
-    .filter(Boolean)
-    .map((message) =>
-      message
-        .split(new RegExp(/^([\w]{1,}:) (.+)/))
-        .map((m) => m.trim())
-        .filter(Boolean),
-    )
-    .map(([event, data]) => {
-      const eventName = event.split(':')[0];
-
-      try {
-        const parsedData = JSON.parse(data);
-        return {
-          event: eventName,
-          data: parsedData,
-        };
-      } catch {
-        return {
-          event: eventName,
-          data,
-        };
-      }
-    });
-
-  return messages;
 }

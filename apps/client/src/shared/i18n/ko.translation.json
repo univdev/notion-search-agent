@@ -25,6 +25,7 @@
   "conversation": {
     "sync-notion-documents-button": {
       "label": "동기화",
+      "progress": "{{count}}개 동기화 중",
       "tooltip": "노션 문서를 동기화합니다."
     },
     "sync-notion-documents-success": {

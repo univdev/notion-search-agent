@@ -1,13 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
+import { Response } from 'express';
 import { Model } from 'mongoose';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
 import { NotionDocument } from 'src/mongoose/schemas/notion-documents.schema';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 import { NotionService } from 'src/notion/notion.service';
+import { NotionDocumentGeneratorResponse } from 'src/notion/notion.type';
 import { RedisService } from 'src/redis/redis.service';
+import streamFactory from 'src/stream/factory/StreamFactory';
 import { WeaviateService } from 'src/weaviate/weaviate.service';
 import { vectors } from 'weaviate-client';
 
@@ -73,15 +75,11 @@ export class KnowledgesService {
     return this.weaviateService.getInstance().collections.delete(this.NOTION_DOCUMENT_COLLECTION_NAME);
   }
 
-  async getNotionDocumentCollection() {
-    return this.weaviateService.getInstance().collections.use(this.NOTION_DOCUMENT_COLLECTION_NAME);
-  }
-
   async addScheduleSyncNotionDocuments() {
     return this.redisService.set(this.REDIS_SCHEDULE_KEY, 'true', 1000 * 60 * 10);
   }
 
-  async checkScheduleSyncNotionDocuments() {
+  async hasScheduleSyncNotionDocuments() {
     return this.redisService.get(this.REDIS_SCHEDULE_KEY);
   }
 
@@ -89,72 +87,171 @@ export class KnowledgesService {
     return this.redisService.del(this.REDIS_SCHEDULE_KEY);
   }
 
-  async syncNotionDocuments(senderIp: string) {
-    try {
-      const isExistCollection = await this.hasNotionDocumentCollection();
-      if (isExistCollection === false) await this.createNotionDocumentCollection();
-      else {
-        await this.deleteNotionDocumentCollection();
-        await this.createNotionDocumentCollection();
-      }
-
-      const isSyncing = await this.checkScheduleSyncNotionDocuments();
-      if (isSyncing === 'true')
-        throw new BadRequestException(new HttpExceptionData('sync-notion-documents.already-syncing'));
-
+  async checkSyncNotionDocumentsSchedule() {
+    const isSyncing = (await this.hasScheduleSyncNotionDocuments()) === 'true';
+    if (isSyncing) {
+      throw new Error('already-syncing');
+    } else {
       await this.addScheduleSyncNotionDocuments();
+    }
+  }
 
-      const collection = await this.getNotionDocumentCollection();
-      const documents = await this.notionService.getAllNotionDocuments(this.configService.get('NOTION_PAGE_ID'));
-      const data: ExportedNotionDocument[] = [];
+  async clearNotionCollection() {
+    const isExistCollection = await this.hasNotionDocumentCollection();
 
-      for (const key of documents.keys()) {
-        const document = documents.get(key);
+    if (isExistCollection === false) {
+      return await this.createNotionDocumentCollection();
+    } else {
+      await this.deleteNotionDocumentCollection();
+      return await this.createNotionDocumentCollection();
+    }
+  }
 
-        data.push({
-          pageId: key,
-          title: document.title,
-          content: document.content,
-          documentUrl: document.documentUrl,
-          createdAt: new Date(document.createdAt),
-          updatedAt: new Date(document.updatedAt),
-        });
-      }
+  async getNotionDocumentCollection() {
+    const isExistCollection = await this.hasNotionDocumentCollection();
 
-      await collection.data.insertMany(data);
-      await this.removeScheduleSyncNotionDocuments();
+    if (isExistCollection === false) {
+      throw new Error('not-exist-collection');
+    } else {
+      return await this.weaviateService.getInstance().collections.get(this.NOTION_DOCUMENT_COLLECTION_NAME);
+    }
+  }
+
+  async syncNotionDocuments(response: Response, senderIp: string) {
+    response.setHeader('Content-Type', 'text/event-stream');
+
+    let createdHistoryId: string | null = null;
+
+    try {
+      // 현재 실행 되고 있는 스케줄이 있는지 확인하고 없으면 생성합니다.
+      // 있으면 에러를 발생시킵니다.
+      await this.checkSyncNotionDocumentsSchedule();
+
+      const notionDocumentCollection = await this.clearNotionCollection();
 
       const createdHistory = await this.notionInitializeHistoryModel.create({
-        status: NotionSyncHistoryStatus.COMPLETED,
+        status: NotionSyncHistoryStatus.SYNCING,
         ip: senderIp,
-        totalPages: data.length,
-        completedAt: new Date(),
+        createdAt: new Date(),
       });
+      createdHistoryId = createdHistory._id.toString();
+
+      const notionDocumentsGenerator = await this.notionService.notionDocumentGenerator(
+        this.configService.get('NOTION_PAGE_ID'),
+      );
+      const notionDocuments: Map<string, ExportedNotionDocument> = new Map();
+      let notionDocumentsGeneratorResult = await notionDocumentsGenerator.next();
+
+      let completedPageCount = 0;
+      let errorPageCount = 0;
+
+      response.write(
+        streamFactory('data', {
+          completedPageCount,
+          errorPageCount,
+          ok: false,
+        }),
+      );
+
+      while (!notionDocumentsGeneratorResult.done) {
+        const result = notionDocumentsGeneratorResult.value as NotionDocumentGeneratorResponse;
+
+        if (result.status?.success === false) {
+          errorPageCount += 1;
+
+          response.write(
+            streamFactory('data', {
+              completedPageCount,
+              errorPageCount,
+              ok: false,
+            }),
+          );
+        } else if (result.done === true) {
+          completedPageCount += 1;
+
+          response.write(
+            streamFactory('data', {
+              completedPageCount,
+              errorPageCount,
+              ok: false,
+            }),
+          );
+        } else if (result.result) {
+          const { pageId, pageTitle, content, documentUrl, createdAt, updatedAt } = result.result;
+          const previousContent = notionDocuments.get(pageId)?.content ?? '';
+          const newContent = `${previousContent}\n${content}`;
+
+          notionDocuments.set(pageId, {
+            pageId,
+            title: pageTitle,
+            content: newContent,
+            documentUrl,
+            createdAt,
+            updatedAt,
+          });
+        }
+
+        notionDocumentsGeneratorResult = await notionDocumentsGenerator.next();
+      }
+
+      try {
+        const allNotionDocuments: ExportedNotionDocument[] = Array.from(notionDocuments.values()).map((document) => {
+          return {
+            title: document.title,
+            content: document.content,
+            url: document.documentUrl,
+            createdAt: document.createdAt,
+            updatedAt: document.updatedAt,
+            historyId: createdHistory._id.toString(),
+            documentUrl: document.documentUrl,
+            pageId: document.pageId,
+          };
+        });
+        await notionDocumentCollection.data.insertMany(allNotionDocuments);
+      } catch {
+        throw new Error('failed-to-insert-notion-documents');
+      }
 
       await Promise.all(
-        data.map((item) =>
-          this.addNotionDocument({
+        Array.from(notionDocuments.values()).map((item) => {
+          return {
             title: item.title,
             content: item.content,
             url: item.documentUrl,
             createdAt: item.createdAt,
             updatedAt: item.updatedAt,
             historyId: createdHistory._id.toString(),
-          }),
-        ),
+          };
+        }),
       );
 
-      return true;
-    } catch (error) {
-      await this.deleteNotionDocumentCollection();
-      await this.notionInitializeHistoryModel.create({
-        status: NotionSyncHistoryStatus.FAILED,
-        ip: senderIp,
-        totalPages: 0,
-        failedAt: new Date(),
-      });
+      await this.notionInitializeHistoryModel.updateOne(
+        { _id: createdHistoryId },
+        { status: NotionSyncHistoryStatus.COMPLETED, totalPages: notionDocuments.size },
+      );
 
-      throw error;
+      response.write(
+        streamFactory('data', {
+          completedPageCount,
+          errorPageCount,
+          ok: true,
+        }),
+      );
+
+      response.end();
+    } catch (error) {
+      if (createdHistoryId) {
+        await this.notionInitializeHistoryModel.updateOne(
+          { _id: createdHistoryId },
+          { status: NotionSyncHistoryStatus.FAILED },
+        );
+      }
+
+      await this.deleteNotionDocumentCollection();
+
+      if (error instanceof Error) response.write(streamFactory('data', { error: error.message }));
+      else response.write(streamFactory('data', { error: 'unknown-error' }));
+      response.end();
     } finally {
       await this.removeScheduleSyncNotionDocuments();
     }

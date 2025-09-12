@@ -1,42 +1,53 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { isAxiosError } from 'axios';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { NOTION_SYNC_HISTORY_QUERY_KEY } from '@/shared/query-keys/NotionSyncHistoryQueryKey';
-
-import useSyncNotionDocumentsMutation from './useSyncNotionDocumentsMutation';
+import syncDocumentsStream from '@/entities/NotionSyncronize/api/syncDocumentsStream';
+import exportStreamMessageObject from '@/shared/stream/ExportStreamMessageObject';
 
 export default function useSyncNotionDocuments() {
-  const { t: serverErrorT } = useTranslation('server-error');
-  const { t: chatT } = useTranslation('conversation');
-  const { mutateAsync: syncNotionDocuments, isPending } = useSyncNotionDocumentsMutation();
-  const queryClient = useQueryClient();
+  const { t } = useTranslation('server-error.sync-notion-documents');
+  const [isPending, setIsPending] = useState(false);
+  const [syncDocumentsCount, setSyncDocumentsCount] = useState(0);
 
-  const handler = () => {
-    syncNotionDocuments()
-      .then(() => toast(chatT('sync-notion-documents-success.message')))
-      .catch((error) => {
-        const isAxiosErr = isAxiosError(error);
+  const handle = () => {
+    syncDocumentsStream().then((response) => {
+      setIsPending(true);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
 
-        if (isAxiosErr) {
-          const { response } = error;
-          const errorData = response?.data;
+      if (!reader) return null;
 
-          if ('error' in errorData && 'errorKey' in errorData.error) {
-            const { errorKey } = errorData.error;
-            toast.error(serverErrorT(`${errorKey}`));
-          } else {
-            toast.error(serverErrorT('sync-notion-documents.unknown-error'));
+      const read = async () => {
+        const { done, value } = await reader.read();
+        const data = decoder.decode(value, { stream: true });
+        const messages = exportStreamMessageObject(data);
+
+        for (const message of messages) {
+          const { data } = message;
+
+          if (typeof data === 'object' && 'error' in data) {
+            setIsPending(false);
+            toast.error(t(data.error));
+            return;
           }
-        } else {
-          toast.error(serverErrorT('sync-notion-documents.unknown-error'));
+
+          if (typeof data === 'object' && 'completedPageCount' in data) {
+            setSyncDocumentsCount(data.completedPageCount);
+          }
         }
-      })
-      .finally(() => {
-        queryClient.invalidateQueries({ queryKey: NOTION_SYNC_HISTORY_QUERY_KEY.all.queryKey });
-      });
+
+        if (done) {
+          setIsPending(false);
+          return;
+        }
+
+        read();
+      };
+
+      read();
+    });
   };
 
-  return [handler, isPending] as const;
+  return { handle, isPending, syncDocumentsCount } as const;
 }
