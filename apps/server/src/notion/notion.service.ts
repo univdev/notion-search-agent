@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlockObjectResponse, Client, ListBlockChildrenResponse } from '@notionhq/client';
@@ -88,7 +88,16 @@ export class NotionService {
     try {
       document = await this.getNotionDocument(blockId);
       metadata = await this.getNotionMetadata(pageId);
-    } catch {
+    } catch (error) {
+      if ('code' in error) {
+        if (error.code === 'object_not_found')
+          throw new NotFoundException(new HttpExceptionData('sync-notion-documents.notion-page-not-found'));
+        else
+          throw new InternalServerErrorException(
+            new HttpExceptionData('sync-notion-documents.failed-get-notion-document'),
+          );
+      }
+
       return result;
     }
     const contentPropertyKeys = [
