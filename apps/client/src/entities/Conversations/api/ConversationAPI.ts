@@ -1,7 +1,7 @@
 import axiosInstance from '@/shared/api/AxiosInstance';
 import API_ROUTES from '@/shared/routes/APIRoutes';
 
-type Conversation = {
+export type Conversation = {
   _id: string;
   summary: string;
   messages: ConversationMessage[];

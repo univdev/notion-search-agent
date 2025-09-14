@@ -15,78 +15,24 @@ import ROUTES from '@/shared/routes/Routes';
 import { CONVERSATION_ID_QUERY_PARAM_KEY } from '@/shared/constants/Conversations.constant';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/shadcn-ui/tooltip';
 import { Spinner } from '@/shared/shadcn-ui/spinner';
-import { useEffect, useRef } from 'react';
+import { Fragment, Suspense, useEffect, useRef } from 'react';
 import { useNavigationConversationsQuery } from '@/features/Navigation/api/useNavigationChatHistoriesQuery';
+import ErrorBoundary from '@/shared/error-boundary/ErrorBoundary';
 
 export default function ChatHistoriesGroup() {
   const { t } = useTranslation('sidebar');
-  const {
-    data: chatNavigationHistories,
-    isLoading,
-    isError,
-    refetch,
-    hasNextPage,
-    fetchNextPage,
-  } = useNavigationConversationsQuery();
-  const histories = chatNavigationHistories?.flatMap((page) => page);
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('navigation.chat-histories.label')}</SidebarGroupLabel>
       <SidebarGroupContent>
-        {(() => {
-          if (isLoading === true) return <LoadingIndicator />;
-          else if (histories?.length === 0) return <NoChatHistories />;
-          else if (isError === true) return <ErrorMessage onRetry={refetch} />;
-          else
-            return (
-              <SidebarMenu>
-                {histories?.map((item) => {
-                  return <ChatHistoryItem key={item._id} itemId={item._id} summary={item.summary} />;
-                })}
-              </SidebarMenu>
-            );
-        })()}
-        {hasNextPage && <LoadingIndicator onLoadMore={fetchNextPage} />}
+        <ErrorBoundary fallback={(onReset) => <ErrorComponent onRetry={onReset} />}>
+          <Suspense fallback={<LoadingComponent />}>
+            <SuccessComponent />
+          </Suspense>
+        </ErrorBoundary>
       </SidebarGroupContent>
     </SidebarGroup>
-  );
-}
-
-export type LoadingIndicatorProps = {
-  onLoadMore?: () => void;
-};
-
-function LoadingIndicator({ onLoadMore }: LoadingIndicatorProps) {
-  const observer = useRef<IntersectionObserver | null>(null);
-  const lastItemRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    observer.current = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          onLoadMore?.();
-        }
-      });
-    });
-
-    if (lastItemRef.current) observer.current.observe(lastItemRef.current);
-
-    return () => {
-      observer.current?.disconnect();
-    };
-  }, []);
-
-  return (
-    <Flex
-      ref={lastItemRef}
-      className="w-full gap-y-1 py-1"
-      alignItems="center"
-      justifyContent="center"
-      direction="column"
-    >
-      <Spinner />
-    </Flex>
   );
 }
 
@@ -113,11 +59,61 @@ function ChatHistoryItem({ itemId, summary }: ChatHistoryItemProps) {
   );
 }
 
-type ErrorMessageProps = {
+function SuccessComponent() {
+  const { data: chatNavigationHistories, hasNextPage, fetchNextPage } = useNavigationConversationsQuery();
+  const falttedHistories = chatNavigationHistories?.flatMap((page) => page) ?? [];
+
+  return (
+    <Fragment>
+      {falttedHistories.length === 0 && <EmptyConversationComponent />}
+      <SidebarMenu>
+        {falttedHistories.map((item) => {
+          return <ChatHistoryItem key={item._id} itemId={item._id} summary={item.summary} />;
+        })}
+      </SidebarMenu>
+      {hasNextPage && <LoadingComponent onLoadMore={fetchNextPage} />}
+    </Fragment>
+  );
+}
+
+export type LoadingComponentProps = {
+  onLoadMore?: () => void;
+};
+
+function LoadingComponent({ onLoadMore }: LoadingComponentProps) {
+  const observer = useRef<IntersectionObserver | null>(null);
+  const lastItemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    observer.current = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          onLoadMore?.();
+        }
+      });
+    });
+
+    if (lastItemRef.current) observer.current.observe(lastItemRef.current);
+
+    return () => {
+      observer.current?.disconnect();
+    };
+  }, []);
+
+  return (
+    <div ref={lastItemRef} className="flex flex-col items-center justify-center w-full gap-y-1 py-1">
+      <div className="m-auto">
+        <Spinner />
+      </div>
+    </div>
+  );
+}
+
+type ErrorComponentProps = {
   onRetry: () => void;
 };
 
-function ErrorMessage({ onRetry }: ErrorMessageProps) {
+function ErrorComponent({ onRetry }: ErrorComponentProps) {
   const { t } = useTranslation('sidebar');
 
   return (
@@ -130,7 +126,7 @@ function ErrorMessage({ onRetry }: ErrorMessageProps) {
   );
 }
 
-function NoChatHistories() {
+function EmptyConversationComponent() {
   const { t } = useTranslation('sidebar');
 
   return (
