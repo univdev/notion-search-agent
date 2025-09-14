@@ -27,6 +27,23 @@ export class NotionService {
     'quote',
     'code',
     'image',
+    'toggle',
+    'bookmark',
+    'breadcrumb',
+    'audio',
+    'bookmark',
+    'breadcrumb',
+    'callout',
+    'link_preview',
+    'link_to_page',
+    'table',
+    'table_of_contents',
+    'quote',
+    'divider',
+    'template',
+    'synced_block',
+    'file',
+    'image',
   ];
   private readonly nextPagePropertyKeys = ['child_page'];
 
@@ -108,17 +125,16 @@ export class NotionService {
         updatedAt = new Date(metadata.last_edited_time);
       }
     } catch (error) {
-      const value = { blockId, pageId, pageTitle: '', content: '', documentUrl, createdAt, updatedAt };
       if ('code' in error) {
         yield {
           status: { success: false, error: error.code },
-          result: value,
+          result: null,
           done: true,
         };
       }
       yield {
         status: { success: false, error: 'unknown-error' },
-        result: value,
+        result: null,
         done: true,
       };
     }
@@ -159,7 +175,13 @@ export class NotionService {
             status: { success: true },
           };
         } else {
-          const notionDocumentGenerator = await this.notionDocumentGenerator(blockObj.id, { ...parent });
+          const notionDocumentGenerator = await this.notionDocumentGenerator(blockObj.id, {
+            pageId,
+            title: pageTitle,
+            documentUrl,
+            createdAt,
+            updatedAt,
+          });
           let notionDocumentGeneratorResult = await notionDocumentGenerator.next();
 
           while (!notionDocumentGeneratorResult.done) {

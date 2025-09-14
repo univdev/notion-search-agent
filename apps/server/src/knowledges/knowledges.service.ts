@@ -127,8 +127,6 @@ export class KnowledgesService {
       // 있으면 에러를 발생시킵니다.
       await this.checkSyncNotionDocumentsSchedule();
 
-      const notionDocumentCollection = await this.clearNotionCollection();
-
       const createdHistory = await this.notionInitializeHistoryModel.create({
         status: NotionSyncHistoryStatus.SYNCING,
         ip: senderIp,
@@ -166,20 +164,45 @@ export class KnowledgesService {
               ok: false,
             }),
           );
-        } else if (result.done === true) {
-          completedPageCount += 1;
-
-          response.write(
-            streamFactory('data', {
-              completedPageCount,
-              errorPageCount,
-              ok: false,
-            }),
-          );
         } else if (result.result) {
-          const { pageId, pageTitle, content, documentUrl, createdAt, updatedAt } = result.result;
+          const { blockId, pageId, pageTitle, content, documentUrl, createdAt, updatedAt } = result.result;
           const previousContent = notionDocuments.get(pageId)?.content ?? '';
           const newContent = `${previousContent}\n${content}`;
+          const isExistDocument = notionDocuments.has(pageId);
+          const isExistRequireFields = Boolean(pageId && pageTitle && documentUrl && createdAt && updatedAt);
+
+          if (isExistRequireFields === false) {
+            if (isExistDocument === false) errorPageCount += 1;
+
+            response.write(
+              streamFactory('data', {
+                errorPageCount,
+                errorItem: {
+                  pageId: pageId ?? '',
+                  blockId: blockId ?? '',
+                  content: content ?? '',
+                  createdAt: createdAt ?? '',
+                  updatedAt: updatedAt ?? '',
+                },
+                ok: false,
+              }),
+            );
+
+            notionDocumentsGeneratorResult = await notionDocumentsGenerator.next();
+            continue;
+          }
+
+          if (isExistDocument === false) {
+            completedPageCount += 1;
+
+            response.write(
+              streamFactory('data', {
+                completedPageCount,
+                errorPageCount,
+                ok: false,
+              }),
+            );
+          }
 
           notionDocuments.set(pageId, {
             pageId,
@@ -194,36 +217,10 @@ export class KnowledgesService {
         notionDocumentsGeneratorResult = await notionDocumentsGenerator.next();
       }
 
-      try {
-        const allNotionDocuments: ExportedNotionDocument[] = Array.from(notionDocuments.values()).map((document) => {
-          return {
-            title: document.title,
-            content: document.content,
-            url: document.documentUrl,
-            createdAt: document.createdAt,
-            updatedAt: document.updatedAt,
-            historyId: createdHistory._id.toString(),
-            documentUrl: document.documentUrl,
-            pageId: document.pageId,
-          };
-        });
-        await notionDocumentCollection.data.insertMany(allNotionDocuments);
-      } catch {
-        throw new Error('failed-to-insert-notion-documents');
-      }
-
-      await Promise.all(
-        Array.from(notionDocuments.values()).map((item) => {
-          return {
-            title: item.title,
-            content: item.content,
-            url: item.documentUrl,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt,
-            historyId: createdHistory._id.toString(),
-          };
-        }),
-      );
+      await Promise.all([
+        this.insertNotionDocumentsToVectorStore(Array.from(notionDocuments.values())),
+        this.insertNotionDocumentsToMongoDB(createdHistoryId, Array.from(notionDocuments.values())),
+      ]);
 
       await this.notionInitializeHistoryModel.updateOne(
         { _id: createdHistoryId },
@@ -254,6 +251,46 @@ export class KnowledgesService {
       response.end();
     } finally {
       await this.removeScheduleSyncNotionDocuments();
+    }
+  }
+
+  async insertNotionDocumentsToVectorStore(documents: ExportedNotionDocument[]) {
+    try {
+      const collection = await this.clearNotionCollection();
+      const allNotionDocuments: ExportedNotionDocument[] = Array.from(documents.values()).map((document) => {
+        return {
+          title: document.title,
+          content: document.content,
+          documentUrl: document.documentUrl,
+          createdAt: document.createdAt,
+          updatedAt: document.updatedAt,
+          pageId: document.pageId,
+        };
+      });
+      await collection.data.insertMany(allNotionDocuments);
+    } catch (error) {
+      console.error('failed-to-insert-vector-store', error);
+      throw new Error('failed-to-insert-vector-store');
+    }
+  }
+
+  async insertNotionDocumentsToMongoDB(historyId: string, documents: ExportedNotionDocument[]) {
+    try {
+      const validDocuments = documents.map((document) => {
+        return {
+          content: document.content || '', // 빈 문자열로 기본값 설정
+          title: document.title,
+          url: document.documentUrl,
+          documentCreatedAt: document.createdAt,
+          documentUpdatedAt: document.updatedAt,
+          historyId,
+        };
+      });
+
+      await this.notionDocumentModel.insertMany(validDocuments);
+    } catch (error) {
+      console.error('failed-to-insert-mongodb', error);
+      throw new Error('failed-to-insert-mongodb');
     }
   }
 
