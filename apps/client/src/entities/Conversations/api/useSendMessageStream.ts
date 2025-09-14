@@ -6,6 +6,7 @@ import { useShallow } from 'zustand/shallow';
 
 import { sendConversationMessageStream } from '@/entities/Conversations/api/ConversationAPI';
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
+import isLocalizedError from '@/shared/api/isInternalServerError';
 import { CONVERSATION_QUERY_KEY } from '@/shared/query-keys/ConversationQueryKey';
 import { NAVIGATION_QUERY_KEY } from '@/shared/query-keys/NavigationQueryKey';
 import exportStreamMessageObject from '@/shared/stream/ExportStreamMessageObject';
@@ -80,7 +81,7 @@ export default function useSendMessageStream() {
         readStream(response, message);
       })
       .catch((error) => {
-        if ('error' in error && 'errorKey' in error.error) toast.error(t(error.error.errorKey));
+        if (isLocalizedError(error)) toast.error(t(error.localeKey));
         else toast.error(t('server-error.conversation.question.unknown-error'));
       })
       .finally(() => {

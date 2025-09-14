@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlockObjectResponse, Client, ListBlockChildrenResponse } from '@notionhq/client';
 import { Model } from 'mongoose';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { LocalizedError } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 
 import {
@@ -57,7 +57,9 @@ export class NotionService {
         auth: this.configService.get('NOTION_TOKEN'),
       });
     } catch {
-      throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.failed-connect-notion'));
+      throw new InternalServerErrorException(
+        new LocalizedError('Failed to connect to Notion', 'sync-notion-documents.failed-connect-notion'),
+      );
     }
   }
 

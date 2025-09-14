@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import { Model } from 'mongoose';
 import OpenAI from 'openai';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { LocalizedError } from 'src/http-exception/http-exception-data';
 import { KnowledgesService } from 'src/knowledges/knowledges.service';
 import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
 import { SearchedNotionDocument } from 'src/notion/notion.type';
@@ -32,7 +32,9 @@ export class ConversationsService {
     response.setHeader('Content-Type', 'text/event-stream');
 
     if (await this.knowledgesService.hasScheduleSyncNotionDocuments()) {
-      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+      throw new BadRequestException(
+        new LocalizedError('Sync request is currently being processed', 'converstaion.question.already-syncing'),
+      );
     }
 
     const conversation = await this.conversationModel.create({
@@ -90,7 +92,9 @@ export class ConversationsService {
     response.setHeader('Content-Type', 'text/event-stream');
 
     if (await this.knowledgesService.hasScheduleSyncNotionDocuments()) {
-      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+      throw new BadRequestException(
+        new LocalizedError('Sync request is currently being processed', 'converstaion.question.already-syncing'),
+      );
     }
 
     const conversation = await this.conversationModel.findById(conversationId);
