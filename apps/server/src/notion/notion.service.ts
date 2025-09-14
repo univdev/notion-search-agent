@@ -2,21 +2,50 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { BlockObjectResponse, Client, ListBlockChildrenResponse } from '@notionhq/client';
-import { ImageBlockObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 import { Model } from 'mongoose';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { LocalizedError } from 'src/http-exception/http-exception-data';
 import { NotionSyncHistory, NotionSyncHistoryStatus } from 'src/mongoose/schemas/notion-sync-history.schema';
 
 import {
   GetNotionSyncHistoriesPayload,
+  NotionDocumentGenerator,
   NotionMetadata,
   RichTextAnnotation,
-  SearchedNotionDocument,
 } from './notion.type';
 
 @Injectable()
 export class NotionService {
   private readonly notion: Client;
+  private readonly searchBlockTypes: BlockObjectResponse['type'][] = [
+    'heading_1',
+    'heading_2',
+    'heading_3',
+    'paragraph',
+    'bulleted_list_item',
+    'numbered_list_item',
+    'callout',
+    'quote',
+    'code',
+    'image',
+    'toggle',
+    'bookmark',
+    'breadcrumb',
+    'audio',
+    'bookmark',
+    'breadcrumb',
+    'callout',
+    'link_preview',
+    'link_to_page',
+    'table',
+    'table_of_contents',
+    'quote',
+    'divider',
+    'template',
+    'synced_block',
+    'file',
+    'image',
+  ];
+  private readonly nextPagePropertyKeys = ['child_page'];
 
   constructor(
     private readonly configService: ConfigService,
@@ -28,7 +57,9 @@ export class NotionService {
         auth: this.configService.get('NOTION_TOKEN'),
       });
     } catch {
-      throw new InternalServerErrorException(new HttpExceptionData('sync-notion-documents.failed-connect-notion'));
+      throw new InternalServerErrorException(
+        new LocalizedError('Failed to connect to Notion', 'sync-notion-documents.failed-connect-notion'),
+      );
     }
   }
 
@@ -73,102 +104,101 @@ export class NotionService {
     }) as unknown as NotionMetadata;
   }
 
-  async getAllNotionDocuments(
+  async *notionDocumentGenerator(
     blockId: string,
-    parentPageId?: string,
-    previousResult = new Map<string, SearchedNotionDocument>(),
-    depth: number = 0,
-  ) {
-    const pageId = parentPageId || blockId;
-    const result: Map<string, SearchedNotionDocument> = previousResult;
-
+    parent: { pageId: string; title: string; documentUrl: string; createdAt: Date; updatedAt: Date } | null = null,
+  ): NotionDocumentGenerator {
     let document: ListBlockChildrenResponse;
-    let metadata: NotionMetadata;
+    let pageId: string | null = parent?.pageId ?? null;
+    let pageTitle: string | null = parent?.title ?? null;
+    let documentUrl: string | null = parent?.documentUrl ?? null;
+    let createdAt: Date | null = parent?.createdAt ?? null;
+    let updatedAt: Date | null = parent?.updatedAt ?? null;
 
     try {
       document = await this.getNotionDocument(blockId);
-      metadata = await this.getNotionMetadata(pageId);
-    } catch {
-      return result;
-    }
-    const contentPropertyKeys = [
-      'heading_1',
-      'heading_2',
-      'heading_3',
-      'paragraph',
-      'bulleted_list_item',
-      'numbered_list_item',
-      'callout',
-      'quote',
-      'code',
-      'image',
-    ];
 
-    const nextPagePropertyKeys = ['child_page'];
-    const pageTitle = metadata.properties.title.title.map((o) => o.plain_text).join('');
-    const pageCreatedAt = metadata.created_time;
-    const pageUpdatedAt = metadata.last_edited_time;
-    const pageDocumentUrl = metadata.url;
+      if (parent === null) {
+        const metadata = await this.getNotionMetadata(blockId);
+        pageId = metadata.id;
+        pageTitle = metadata.properties.title.title.map((title) => title.plain_text).join('');
+        documentUrl = metadata.url;
+        createdAt = new Date(metadata.created_time);
+        updatedAt = new Date(metadata.last_edited_time);
+      }
+    } catch (error) {
+      if ('code' in error) {
+        yield {
+          status: { success: false, error: error.code },
+          result: null,
+          done: true,
+        };
+      }
+      yield {
+        status: { success: false, error: 'unknown-error' },
+        result: null,
+        done: true,
+      };
+    }
 
     for (let i = 0; i < document.results.length; i += 1) {
-      const block = document.results[i] as BlockObjectResponse;
-      if (result.has(pageId) === false)
-        result.set(pageId, {
-          title: pageTitle,
-          content: '',
-          createdAt: pageCreatedAt,
-          updatedAt: pageUpdatedAt,
-          documentUrl: pageDocumentUrl,
-        });
+      const block = document.results[i];
+      const blockObj = block as BlockObjectResponse;
+      const type = blockObj.type;
+      const hasChildren = 'has_children' in blockObj ? blockObj.has_children : false;
 
-      const blockType = block.type;
-      const hasChildren = 'has_children' in block ? block['has_children'] : false;
+      if (this.nextPagePropertyKeys.includes(type)) {
+        const notionDocumentGenerator = await this.notionDocumentGenerator(blockObj.id);
+        let notionDocumentGeneratorResult = await notionDocumentGenerator.next();
 
-      if (nextPagePropertyKeys.includes(blockType)) {
-        const nextPageId = block.id;
-        await this.getAllNotionDocuments(block.id, nextPageId, result, depth + 1);
-      }
+        while (!notionDocumentGeneratorResult.done) {
+          yield notionDocumentGeneratorResult.value;
+          notionDocumentGeneratorResult = await notionDocumentGenerator.next();
+        }
+      } else if (this.searchBlockTypes.includes(type)) {
+        if (hasChildren === false) {
+          const richTextArray = block[type].rich_text ?? [];
+          let richTextContent = '';
 
-      for (const contentPropertyKey of contentPropertyKeys) {
-        if (contentPropertyKey in block) {
-          const richText = block[contentPropertyKey].rich_text ?? [];
-
-          if (blockType === 'image') {
-            const imageBlock = block as ImageBlockObjectResponse;
-            if (imageBlock.image.type === 'file') {
-              const url = imageBlock.image.file.url;
-              const markdownImage = this.factoryNotionContent(blockType, url, depth);
-
-              result.set(pageId, {
-                ...result.get(pageId),
-                content: `${result.get(pageId).content}${markdownImage}\n`,
-              });
-            }
-          } else if (Array.isArray(richText)) {
-            const longText = [];
-
-            for (const richTextItem of richText) {
-              const plainText = richTextItem?.plain_text;
-              const annotation = richTextItem?.annotations as RichTextAnnotation;
-              const formattedText = this.factoryTextAnnotation(annotation, plainText);
-
-              longText.push(formattedText);
-            }
-
-            const formattedLongText = this.factoryNotionContent(blockType, longText.join(''), depth);
-
-            result.set(pageId, {
-              ...result.get(pageId),
-              content: `${result.get(pageId).content}${formattedLongText}\n`,
-            });
+          for (const richText of richTextArray) {
+            richTextContent += this.factoryTextAnnotation(richText.annotations, richText.plain_text);
           }
 
-          if (hasChildren) await this.getAllNotionDocuments(block.id, pageId, result, depth + 1);
+          yield {
+            result: {
+              blockId: blockId,
+              pageId,
+              pageTitle,
+              documentUrl,
+              content: richTextContent,
+              createdAt,
+              updatedAt,
+            },
+            status: { success: true },
+          };
+        } else {
+          const notionDocumentGenerator = await this.notionDocumentGenerator(blockObj.id, {
+            pageId,
+            title: pageTitle,
+            documentUrl,
+            createdAt,
+            updatedAt,
+          });
+          let notionDocumentGeneratorResult = await notionDocumentGenerator.next();
+
+          while (!notionDocumentGeneratorResult.done) {
+            yield notionDocumentGeneratorResult.value;
+            notionDocumentGeneratorResult = await notionDocumentGenerator.next();
+          }
         }
       }
-    }
 
-    return result;
+      yield {
+        result: null,
+        status: null,
+        done: true,
+      };
+    }
   }
 
   factoryNotionContent(type: BlockObjectResponse['type'], content: string, depth: number = 0) {

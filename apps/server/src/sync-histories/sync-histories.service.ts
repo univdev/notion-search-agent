@@ -15,21 +15,13 @@ export class SyncHistoriesService {
 
   async getNotionSyncHistories(payload: GetNotionSyncHistoriesPayload) {
     const { offset = 0, limit = 10 } = payload;
-    const histories = await this.notionSyncHistoryModel.find({}).skip(offset).limit(limit).sort({ createdAt: 'desc' });
+    const histories = await this.notionSyncHistoryModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $skip: offset },
+      { $limit: limit },
+      { $lookup: { from: 'notion-documents', localField: '_id', foreignField: 'historyId', as: 'documents' } },
+    ]);
 
-    const historiesWithDocuments = await Promise.all(
-      histories.map(async (history) => {
-        const documents = await this.notionDocumentModel
-          .find({ historyId: history._id })
-          .sort({ createdAt: 'asc' })
-          .select('title url createdAt');
-        return {
-          ...history.toJSON(),
-          documents,
-        };
-      }),
-    );
-
-    return historiesWithDocuments;
+    return histories;
   }
 }

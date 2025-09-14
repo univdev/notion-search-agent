@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Response } from 'express';
 import { Model } from 'mongoose';
 import OpenAI from 'openai';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { LocalizedError } from 'src/http-exception/http-exception-data';
 import { KnowledgesService } from 'src/knowledges/knowledges.service';
 import { Conversation, ConversationMessageRole } from 'src/mongoose/schemas/converstation.schema';
 import { SearchedNotionDocument } from 'src/notion/notion.type';
@@ -17,7 +17,7 @@ export class ConversationsService {
   public readonly openai: OpenAI;
   public readonly OPENAI_QUESTION_MODEL = 'gpt-4o-mini';
   public readonly OPENAI_SUMMARY_MODEL = 'gpt-4o-mini';
-  public readonly WEAVIATE_SEARCH_LIMIT = 10;
+  public readonly WEAVIATE_SEARCH_LIMIT = 5;
 
   constructor(
     private readonly openAIService: OpenaiService,
@@ -31,8 +31,10 @@ export class ConversationsService {
   async startNewConversation(response: Response, question: string, senderIp: string) {
     response.setHeader('Content-Type', 'text/event-stream');
 
-    if (await this.knowledgesService.checkScheduleSyncNotionDocuments()) {
-      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+    if (await this.knowledgesService.hasScheduleSyncNotionDocuments()) {
+      throw new BadRequestException(
+        new LocalizedError('Sync request is currently being processed', 'converstaion.question.already-syncing'),
+      );
     }
 
     const conversation = await this.conversationModel.create({
@@ -40,7 +42,7 @@ export class ConversationsService {
       messages: [],
     });
 
-    const documents = await this.getDocumentsByQuestion(question);
+    const documents = await this.getDocumentsByQuestionFromVectorStore(question);
     const stream = await this.getAssistantMessageStream(question, documents, []);
 
     response.write(
@@ -89,8 +91,10 @@ export class ConversationsService {
   async continueQuestion(response: Response, question: string, conversationId: string, senderIp: string) {
     response.setHeader('Content-Type', 'text/event-stream');
 
-    if (await this.knowledgesService.checkScheduleSyncNotionDocuments()) {
-      throw new BadRequestException(new HttpExceptionData('converstaion.question.already-syncing'));
+    if (await this.knowledgesService.hasScheduleSyncNotionDocuments()) {
+      throw new BadRequestException(
+        new LocalizedError('Sync request is currently being processed', 'converstaion.question.already-syncing'),
+      );
     }
 
     const conversation = await this.conversationModel.findById(conversationId);
@@ -99,8 +103,8 @@ export class ConversationsService {
 
     const MESSAGE_LIMIT = 10;
     const messages = conversation.messages.slice(MESSAGE_LIMIT * -1);
-    const sentences = await this.getDocumentsByQuestion(question);
-    const stream = await this.getAssistantMessageStream(question, sentences, messages);
+    const foundDocuments = await this.getDocumentsByQuestionFromVectorStore(question);
+    const stream = await this.getAssistantMessageStream(question, foundDocuments, messages);
 
     let assistantMessage = '';
 
@@ -137,12 +141,12 @@ export class ConversationsService {
 
   private async getAssistantMessageStream(
     question: string,
-    sentences: SearchedNotionDocument[],
+    documents: SearchedNotionDocument[],
     messages: Conversation['messages'],
   ) {
     const stream = await this.openai.chat.completions.create({
       model: this.OPENAI_QUESTION_MODEL,
-      messages: searchNotionByQuestionPromptFactory(question, sentences, messages),
+      messages: searchNotionByQuestionPromptFactory(question, documents, messages),
       stream: true,
     });
 
@@ -162,7 +166,7 @@ export class ConversationsService {
     return summary.choices[0]?.message?.content;
   }
 
-  async getDocumentsByQuestion(question: string) {
+  async getDocumentsByQuestionFromVectorStore(question: string) {
     const collection = await this.knowledgesService.getNotionDocumentCollection();
 
     const items = await collection.query.nearText(question, {

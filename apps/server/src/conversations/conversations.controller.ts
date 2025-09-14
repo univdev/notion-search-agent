@@ -12,7 +12,7 @@ import {
   Response,
 } from '@nestjs/common';
 import { Response as ExpressResponse } from 'express';
-import { HttpExceptionData } from 'src/http-exception/http-exception-data';
+import { LocalizedError } from 'src/http-exception/http-exception-data';
 
 import { ConversationsService } from './conversations.service';
 
@@ -35,7 +35,10 @@ export class ConversationsController {
 
   @Post('/')
   async question(@Body('question') question: string, @Response() response: ExpressResponse, @Ip() senderIp: string) {
-    if (!question) throw new BadRequestException(new HttpExceptionData('conversation.question.question-required'));
+    if (!question)
+      throw new BadRequestException(
+        new LocalizedError('Question is required', 'conversation.question.question-required'),
+      );
 
     return this.conversationsService.startNewConversation(response, question, senderIp);
   }

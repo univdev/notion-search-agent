@@ -6,8 +6,10 @@ import { useShallow } from 'zustand/shallow';
 
 import { sendConversationMessageStream } from '@/entities/Conversations/api/ConversationAPI';
 import useConversationId from '@/entities/Conversations/hooks/useConversationId';
+import isLocalizedError from '@/shared/api/isInternalServerError';
 import { CONVERSATION_QUERY_KEY } from '@/shared/query-keys/ConversationQueryKey';
 import { NAVIGATION_QUERY_KEY } from '@/shared/query-keys/NavigationQueryKey';
+import exportStreamMessageObject from '@/shared/stream/ExportStreamMessageObject';
 
 import useStreamMessagesStore from '../models/useStreamMessagesStore';
 
@@ -79,7 +81,7 @@ export default function useSendMessageStream() {
         readStream(response, message);
       })
       .catch((error) => {
-        if ('error' in error && 'errorKey' in error.error) toast.error(t(error.error.errorKey));
+        if (isLocalizedError(error)) toast.error(t(error.localeKey));
         else toast.error(t('server-error.conversation.question.unknown-error'));
       })
       .finally(() => {
@@ -88,34 +90,4 @@ export default function useSendMessageStream() {
   };
 
   return [handler, isPending] as const;
-}
-
-function exportStreamMessageObject(data: string): { event: string; data: Record<string, string> | string }[] {
-  const messages: { event: string; data: Record<string, string> | string }[] = data
-    .split('\n')
-    .filter(Boolean)
-    .map((message) =>
-      message
-        .split(new RegExp(/^([\w]{1,}:) (.+)/))
-        .map((m) => m.trim())
-        .filter(Boolean),
-    )
-    .map(([event, data]) => {
-      const eventName = event.split(':')[0];
-
-      try {
-        const parsedData = JSON.parse(data);
-        return {
-          event: eventName,
-          data: parsedData,
-        };
-      } catch {
-        return {
-          event: eventName,
-          data,
-        };
-      }
-    });
-
-  return messages;
 }

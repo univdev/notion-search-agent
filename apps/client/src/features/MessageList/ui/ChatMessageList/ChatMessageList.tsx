@@ -9,6 +9,12 @@ import useStreamMessagesStore from '@/entities/Conversations/models/useStreamMes
 import { Spinner } from '@/shared/shadcn-ui/spinner';
 import { Button } from '@/shared/shadcn-ui/button';
 import { useTranslation } from 'react-i18next';
+import { Suspense, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { CONVERSATION_QUERY_KEY } from '@/shared/query-keys/ConversationQueryKey';
+import { useNavigate } from 'react-router';
+import ROUTES from '@/shared/routes/Routes';
+import ErrorBoundary from '@/shared/error-boundary/ErrorBoundary';
 
 export type ChatMessageListProps = {
   className?: string;
@@ -20,16 +26,31 @@ export default function ChatMessageList({ className, isTyping = false }: ChatMes
 
   if (conversationId === null) throw new Error('Conversation ID is not set');
 
+  return (
+    <ErrorBoundary fallback={(onReset) => <ErrorComponent onRetry={onReset} />}>
+      <Suspense fallback={<LoadingComponent />}>
+        <SuccessComponent className={className} isTyping={isTyping} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+type SuccessComponentProps = {
+  className?: string;
+  isTyping?: boolean;
+};
+
+const SuccessComponent = ({ className, isTyping }: SuccessComponentProps) => {
+  const [conversationId] = useConversationId();
+  if (conversationId === null) throw new Error('Conversation ID is not set');
+
   const streamMessages = useStreamMessagesStore(useShallow((state) => state.messages));
   const [userMessage, assistantMessageStream] = streamMessages[conversationId] ?? [];
-  const {
-    data: conversation,
-    isLoading: isConversationLoading,
-    isError: isConversationError,
-    refetch: refetchConversation,
-  } = useConversationQuery(conversationId);
-
+  const { data: conversation } = useConversationQuery(conversationId);
   const messages = conversation?.data.messages ?? [];
+
+  const isExistUserMessage = userMessage !== undefined;
+  const isExistAssistantMessageStream = assistantMessageStream !== undefined;
 
   useConversationScroll(messages, assistantMessageStream ?? '');
 
@@ -38,43 +59,49 @@ export default function ChatMessageList({ className, isTyping = false }: ChatMes
       className={cn('chat-message-list w-full gap-y-8 px-2 overflow-y-auto relative', className)}
       direction="column"
     >
-      {(() => {
-        if (isConversationLoading === true) return <ChatMessageLoading />;
-        else if (isConversationError === true) return <ChatMessageLoadError onRetry={refetchConversation} />;
-        else {
-          return messages.map((message, index) => {
-            return <ChatMessage key={index} sender={message.role} message={message.content} />;
-          });
-        }
-      })()}
+      {messages.map((message, index) => {
+        return <ChatMessage key={index} sender={message.role} message={message.content} />;
+      })}
       {isTyping && <ChatMessage sender={CHAT_MESSAGE_SENDER.USER} message="..." />}
-      {userMessage !== undefined && <ChatMessage sender={CHAT_MESSAGE_SENDER.USER} message={userMessage} />}
-      {assistantMessageStream !== undefined && (
+      {isExistUserMessage && <ChatMessage sender={CHAT_MESSAGE_SENDER.USER} message={userMessage} />}
+      {isExistAssistantMessageStream && (
         <ChatMessage sender={CHAT_MESSAGE_SENDER.ASSISTANT} message={assistantMessageStream} />
       )}
     </Flex>
   );
-}
+};
 
-const ChatMessageLoading = () => {
+const LoadingComponent = () => {
   return (
-    <div className="flex flex-col gap-y-8 px-2 overflow-y-auto relative items-center">
+    <div className="flex flex-col w-full gap-y-8 px-2 items-center">
       <Spinner />
     </div>
   );
 };
 
-type ChatMessageLoadErrorProps = {
+type ErrorComponentProps = {
   onRetry: () => void;
 };
 
-const ChatMessageLoadError = ({ onRetry }: ChatMessageLoadErrorProps) => {
+const ErrorComponent = ({ onRetry }: ErrorComponentProps) => {
   const { t } = useTranslation('server-error');
+  const queryClient = useQueryClient();
+  const [conversationId] = useConversationId();
+  const navigate = useNavigate();
+
+  const retry = useCallback(() => {
+    if (conversationId === null) {
+      navigate(ROUTES.CONVERSATIONS.HOME);
+    } else {
+      queryClient.invalidateQueries({ queryKey: CONVERSATION_QUERY_KEY.detail(conversationId).queryKey });
+    }
+    onRetry();
+  }, []);
 
   return (
-    <div className="flex flex-col items-center gap-y-4">
+    <div className="flex w-full flex-col items-center gap-y-4">
       <p>{t('conversation.list.load-failed')}</p>
-      <Button type="button" variant="default" onClick={onRetry}>
+      <Button type="button" variant="default" onClick={retry}>
         {t('conversation.list.retry')}
       </Button>
     </div>
