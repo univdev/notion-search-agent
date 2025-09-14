@@ -66,7 +66,9 @@
       "failed-connect-notion": "Failed to connect to Notion",
       "already-syncing": "Sync request is currently being processed",
       "unknown-error": "Notion sync failed due to unknown error",
-      "failed-save-sentences": "Failed to save Notion documents to vector store"
+      "failed-save-sentences": "Failed to save Notion documents to vector store",
+      "notion-page-not-found": "Notion page not found",
+      "failed-get-notion-document": "Failed to get Notion document"
     },
     "conversation": {
       "question": {

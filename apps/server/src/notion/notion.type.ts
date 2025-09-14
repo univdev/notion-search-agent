@@ -62,3 +62,32 @@ export type NotionPageProperties = {
     }[];
   };
 };
+
+export type NotionDocumentGeneratorResult = {
+  blockId: string;
+  pageId: string;
+  pageTitle: string;
+  content: string;
+  documentUrl: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type NotionDocumentGeneratorStatus = {
+  success: boolean;
+  error?: string;
+};
+
+export type NotionDocumentGeneratorResponse = {
+  result: NotionDocumentGeneratorResult | null;
+  status: NotionDocumentGeneratorStatus | null;
+  done?: boolean;
+};
+
+export type NotionDocumentGenerator = AsyncGenerator<NotionDocumentGeneratorResponse>;
+
+export type StreamSyncNotionDocumentsResponse = {
+  completedPageCount: number;
+  errorPageCount: number;
+  ok: boolean;
+};
